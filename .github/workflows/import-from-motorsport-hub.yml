@@ -1,0 +1,199 @@
+name: Import Club Pulse from Motorsport Hub
+
+on:
+  push:
+    branches:
+      - migration/import-from-motorsport-hub
+    paths:
+      - '.github/workflows/import-from-motorsport-hub.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout Club Pulse migration branch
+        uses: actions/checkout@v4
+        with:
+          ref: migration/import-from-motorsport-hub
+          fetch-depth: 0
+
+      - name: Checkout exact Motorsport Hub source snapshot
+        uses: actions/checkout@v4
+        with:
+          repository: 48wr9f4wgp-lab/motorsport-hub
+          ref: 9e869fdae85e9ee352234b925c733065eb7c24fd
+          path: _source
+          fetch-depth: 0
+
+      - name: Verify every launcher-pinned source matches the exported snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import pathlib,re,subprocess,sys
+          source=pathlib.Path('_source')
+          launcher=(source/'scriptable/club-pulse.js').read_text()
+          refs=re.findall(r'https://raw\.githubusercontent\.com/48wr9f4wgp-lab/motorsport-hub/([0-9a-f]{7,40})/(scriptable/[^\'\"]+)',launcher)
+          if not refs:
+              raise SystemExit('No pinned Club Pulse runtime refs found')
+          seen=set()
+          for sha,path in refs:
+              key=(sha,path)
+              if key in seen: continue
+              seen.add(key)
+              current=(source/path).read_bytes()
+              historical=subprocess.check_output(['git','-C',str(source),'show',f'{sha}:{path}'])
+              if current!=historical:
+                  print(f'MISMATCH {sha} {path}',file=sys.stderr)
+                  raise SystemExit(1)
+              print(f'OK {sha} {path}')
+          print(f'Verified {len(seen)} pinned runtime files against export snapshot')
+          PY
+
+      - name: Import exact Club Pulse product tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf scriptable
+          cp -R _source/scriptable ./scriptable
+          rm -rf _source
+          rm -f MIGRATION_SENTINEL.md README.migration-note.md MIGRATION_PLAN.md TEMP.md
+          mkdir -p .github/workflows
+          cat > .github/workflows/club-pulse-contract.yml <<'YAML'
+          name: Club Pulse Contract QA
+
+          on:
+            push:
+              branches:
+                - main
+                - migration/import-from-motorsport-hub
+              paths:
+                - 'scriptable/**'
+                - '.github/workflows/club-pulse-contract.yml'
+            pull_request:
+              branches:
+                - main
+              paths:
+                - 'scriptable/**'
+                - '.github/workflows/club-pulse-contract.yml'
+
+          permissions:
+            contents: read
+
+          jobs:
+            contract:
+              runs-on: ubuntu-latest
+              timeout-minutes: 8
+              steps:
+                - uses: actions/checkout@v4
+                - uses: actions/setup-node@v4
+                  with:
+                    node-version: '24'
+                    package-manager-cache: false
+                - name: Run all Club Pulse contract tests
+                  shell: bash
+                  run: |
+                    set -euo pipefail
+                    for test in scriptable/*.test.js; do
+                      echo "::group::$test"
+                      node "$test"
+                      echo "::endgroup::"
+                    done
+          YAML
+          cat > README.md <<'EOF'
+          # Club Pulse
+
+          Club Pulse is the dedicated Scriptable football-club widget project extracted from the former mixed `motorsport-hub` repository.
+
+          The product implementation lives in `scriptable/`. The canonical launcher is `scriptable/club-pulse.js`.
+
+          ## Migration provenance
+
+          This repository was migrated from `48wr9f4wgp-lab/motorsport-hub` using exact source snapshot `9e869fdae85e9ee352234b925c733065eb7c24fd` on 2026-09-14.
+
+          The migration verifies every runtime file pinned by the launcher against its historical immutable source before repinning the launcher to this repository.
+
+          ## Validation
+
+          `.github/workflows/club-pulse-contract.yml` runs all `scriptable/*.test.js` contract/regression checks.
+
+          ## License
+
+          No software license is granted by this migration. Club Pulse licensing is intentionally independent from Motorsport Hub's MPL-2.0 decision.
+          EOF
+          cat > MIGRATION_SOURCE.md <<'EOF'
+          # Club Pulse migration source
+
+          - Source repository: `48wr9f4wgp-lab/motorsport-hub`
+          - Exact source commit: `9e869fdae85e9ee352234b925c733065eb7c24fd`
+          - Exported path: `scriptable/`
+          - Migration date: 2026-09-14
+
+          Before repinning runtime URLs, the migration workflow compares every launcher-pinned historical file with the file at the exact export snapshot. Any mismatch fails the migration.
+          EOF
+
+      - name: Commit exact imported snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add README.md MIGRATION_SOURCE.md scriptable .github/workflows/club-pulse-contract.yml
+          git add -u
+          git commit -m 'Import exact Club Pulse snapshot from Motorsport Hub'
+          echo "IMPORT_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+
+      - name: Re-pin launcher to the dedicated repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os,pathlib,re
+          import_sha=os.environ['IMPORT_SHA']
+          launcher_path=pathlib.Path('scriptable/club-pulse.js')
+          launcher=launcher_path.read_text()
+          refs=re.findall(r'https://raw\.githubusercontent\.com/48wr9f4wgp-lab/motorsport-hub/([0-9a-f]{7,40})/(scriptable/[^\'\"]+)',launcher)
+          old_shas={sha for sha,_ in refs}
+          launcher=re.sub(
+              r'https://raw\.githubusercontent\.com/48wr9f4wgp-lab/motorsport-hub/[0-9a-f]{7,40}/(scriptable/[^\'\"]+)',
+              lambda m:f'https://raw.githubusercontent.com/48wr9f4wgp-lab/club-pulse/{import_sha}/{m.group(1)}',
+              launcher,
+          )
+          launcher_path.write_text(launcher)
+          test_path=pathlib.Path('scriptable/club-pulse-launcher-version.test.js')
+          test=test_path.read_text()
+          for sha in sorted(old_shas,key=len,reverse=True):
+              test=test.replace(sha,import_sha)
+          test=test.replace('pins core to immutable commit','pins core to migrated immutable commit')
+          test_path.write_text(test)
+          with pathlib.Path('MIGRATION_SOURCE.md').open('a') as f:
+              f.write(f'\n- Imported immutable snapshot commit in this repository: `{import_sha}`\n')
+              f.write('- Launcher runtime URLs were repinned to that immutable snapshot after byte-for-byte parity verification.\n')
+          PY
+
+      - name: Run all Club Pulse tests before publishing migration branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          for test in scriptable/*.test.js; do
+            echo "::group::$test"
+            node "$test"
+            echo "::endgroup::"
+          done
+          if grep -R "raw.githubusercontent.com/48wr9f4wgp-lab/motorsport-hub" scriptable/club-pulse.js; then
+            echo 'Launcher still depends on Motorsport Hub raw runtime URLs' >&2
+            exit 1
+          fi
+
+      - name: Finalize migration branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/import-from-motorsport-hub.yml
+          git add -A
+          git commit -m 'Re-pin Club Pulse runtime to dedicated repository'
+          git push origin HEAD:migration/import-from-motorsport-hub
