@@ -1,0 +1,39 @@
+name: Club Pulse Contract QA
+
+on:
+  push:
+    branches:
+      - main
+      - migration/import-from-motorsport-hub
+    paths:
+      - 'scriptable/**'
+      - '.github/workflows/club-pulse-contract.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'scriptable/**'
+      - '.github/workflows/club-pulse-contract.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Run all Club Pulse contract tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          for test in scriptable/*.test.js; do
+            echo "::group::$test"
+            node "$test"
+            echo "::endgroup::"
+          done
