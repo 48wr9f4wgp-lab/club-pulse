@@ -197,3 +197,5 @@ jobs:
           git add -A
           git commit -m 'Re-pin Club Pulse runtime to dedicated repository'
           git push origin HEAD:migration/import-from-motorsport-hub
+
+# Registered on default branch; touching this file triggers the one-shot migration.
