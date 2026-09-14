@@ -7,7 +7,7 @@ let failed=0;
 const check=(n,ok)=>{if(ok)console.log(`✓ ${n}`);else{console.error(`✗ ${n}`);failed++}};
 const has=(s,x)=>s.includes(x);
 try{new Function(`return (async()=>{\n${policy}\n})`);check('data policy syntax',true)}catch(e){console.error(e.message);check('data policy syntax',false)}
-check('launcher pins data policy v8',has(launcher,'fa0b30efd1407e4221175b25da282b904c713b71')&&has(launcher,'ClubPulseDataPolicyPatch_v8.js')&&has(launcher,"'data-policy8'"));
+check('launcher pins data policy v8',has(launcher,'309658e07c56f1932b49c2d19e35d2940b8773f5')&&has(launcher,'ClubPulseDataPolicyPatch_v8.js')&&has(launcher,"'data-policy8'"));
 check('data policy loads after resilience',has(launcher,"+q+'\\n'+r+'\\n'+dp"));
 check('adaptive refresh tiers exist',['3*60*1000','5*60*1000','15*60*1000','30*60*1000','60*60*1000'].every(x=>has(policy,x)));
 check('standings cache is league-shared',has(policy,"standings_${String(club.comp||'league').toLowerCase()}.json")&&has(policy,'CP_DP_STANDINGS_TTL=30*60*1000'));

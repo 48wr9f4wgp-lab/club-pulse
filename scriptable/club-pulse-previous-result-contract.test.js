@@ -6,7 +6,7 @@ let failed=0;
 const check=(name,ok)=>{if(ok)console.log(`✓ ${name}`);else{console.error(`✗ ${name}`);failed++}};
 
 try{new Function(patch);check('previous-result patch syntax',true)}catch(e){console.error(e);check('previous-result patch syntax',false)}
-check('launcher pins Previous Result v2 immutably',launcher.includes('d62020a0b222a33bdfb3c1e12bd852e0dc881b01/scriptable/club-pulse-previous-result-patch.js'));
+check('launcher pins Previous Result v2 immutably',launcher.includes('309658e07c56f1932b49c2d19e35d2940b8773f5/scriptable/club-pulse-previous-result-patch.js'));
 check('launcher uses dedicated previous-result v2 cache',launcher.includes('ClubPulsePreviousResultPatch_v2.js')&&launcher.includes("'previous-result2'"));
 check('previous-result patch loads after UI unification',launcher.includes("+fs+'\\n'+sui+'\\n'+pr"));
 check('latest FINISHED match persists as previousResult',patch.includes("finished=rows.filter(m=>m?.status==='FINISHED')")&&patch.includes('previousResult:'));

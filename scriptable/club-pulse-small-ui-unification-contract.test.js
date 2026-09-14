@@ -5,7 +5,7 @@ const launcher=fs.readFileSync(path.join(__dirname,'club-pulse.js'),'utf8');
 let failed=0;
 function check(name,ok){if(ok)console.log(`✓ ${name}`);else{console.error(`✗ ${name}`);failed++}}
 
-check('launcher pins Small UI Unification immutably',launcher.includes('0e7a075736a9c467053588918a48ceb3446cfc38/scriptable/club-pulse-small-ui-unification-patch.js'));
+check('launcher pins Small UI Unification immutably',launcher.includes('309658e07c56f1932b49c2d19e35d2940b8773f5/scriptable/club-pulse-small-ui-unification-patch.js'));
 check('launcher uses dedicated unification v3 cache',launcher.includes('ClubPulseSmallUIUnificationPatch_v3.js')&&launcher.includes("'small-ui-unification3'"));
 check('unification loads after canonical form system',launcher.includes("+plv+'\\n'+fs+'\\n'+sui"));
 check('Paderborn provider aliases normalize to Japanese',patch.includes("'SC Paderborn':'パーダーボルン'")&&patch.includes("'SC Paderborn 07':'パーダーボルン'"));

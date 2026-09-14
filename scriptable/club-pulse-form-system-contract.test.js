@@ -16,7 +16,7 @@ check('Medium footer routes through canonical row before final extension',form.i
 check('Small footer routes through canonical row',form.includes("buildFooterSmall=function(w,d){return cpRenderCanonicalFormRow(w,d,'small')}"));
 check('form system contains no club id branches',!/(club\?\.team\s*===|team\s*===\s*\d+)/.test(form));
 check('launcher uses dedicated form-system cache',launcher.includes('ClubPulseFormSystemPatch_v1.js')&&launcher.includes("'form-system1'"));
-check('launcher pins immutable form-system commit',launcher.includes('41ce4238ea15fb7dc8eb668011c98e203acd1aa4/scriptable/club-pulse-form-system-patch.js'));
+check('launcher pins immutable form-system commit',launcher.includes('309658e07c56f1932b49c2d19e35d2940b8773f5/scriptable/club-pulse-form-system-patch.js'));
 check('form system loads before Small UI unification and Previous Result',launcher.includes("+plv+'\\n'+fs+'\\n'+sui+'\\n'+pr"));
 check('launcher documents canonical form ownership and final scale layer',launcher.includes('Canonical Form System v1 owns W/D/L/unknown typography')&&launcher.includes('Medium Scale Unification v3 is loaded last'));
 if(failed){console.error(`\nCanonical form system contract FAILED: ${failed}`);process.exit(1)}

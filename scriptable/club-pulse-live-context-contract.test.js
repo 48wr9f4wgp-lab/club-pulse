@@ -11,6 +11,6 @@ check('Medium metaLine routes LIVE through shared context',src.includes("if(d?.m
 check('Small LIVE reuses the same shared context',src.includes('m.kickoff=cpLiveContext(m)'));
 check('unknown venue falls back to side only',src.includes("venue&&venue!=='会場未定'?")&&src.includes(':side'));
 check('launcher uses live context v2 cache',launcher.includes('ClubPulseLiveContextPatch_v2.js')&&launcher.includes("'livectx2'"));
-check('launcher pins live context v2 immutable commit',launcher.includes('732c8a23f78d3141926e09fe90e394c62975bd25/scriptable/club-pulse-live-context-patch.js'));
+check('launcher pins live context v2 immutable commit',launcher.includes('309658e07c56f1932b49c2d19e35d2940b8773f5/scriptable/club-pulse-live-context-patch.js'));
 if(failed){console.error(`\nLive context contract FAILED: ${failed}`);process.exit(1)}
 console.log('\nClub Pulse live context v2 contract PASSED');

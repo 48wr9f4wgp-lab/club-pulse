@@ -21,11 +21,11 @@ check('launcher uses Man U v4',has(files.launcher,'ClubPulseManUThemePatch_v4.js
 check('launcher uses theme registry v13',has(files.launcher,'ClubPulseThemeRegistryPatch_v13.js')&&has(files.launcher,"'themes13'"));
 check('launcher uses identity v7',has(files.launcher,'ClubPulseIdentityColorPatch_v7.js')&&has(files.launcher,"'identity7'"));
 check('launcher loads canonical design system v7',has(files.launcher,'ClubPulseDesignSystemPatch_v7.js')&&has(files.launcher,"'design-system7'"));
-check('launcher pins canonical design-system v7 commit',has(files.launcher,'3cfc3e4ea100fdc95686614c42561036052222ae'));
-check('launcher uses premium visual v6',has(files.launcher,'ClubPulsePremiumVisualPatch_v6.js')&&has(files.launcher,"'premium6'")&&has(files.launcher,'ecc546bf6f1bfb3d82e7a601d07622b3d716dcba'));
+check('launcher pins canonical design-system v7 commit',has(files.launcher,'309658e07c56f1932b49c2d19e35d2940b8773f5'));
+check('launcher uses premium visual v6',has(files.launcher,'ClubPulsePremiumVisualPatch_v6.js')&&has(files.launcher,"'premium6'")&&has(files.launcher,'309658e07c56f1932b49c2d19e35d2940b8773f5'));
 check('launcher uses readability v8',has(files.launcher,'ClubPulseReadabilityGuardPatch_v8.js')&&has(files.launcher,"'readability8'"));
-check('launcher pins readability v8 commit',has(files.launcher,'9b6e1f82ad2d07d67628cd501723d5eba095908f'));
-check('launcher uses cache migration v1',has(files.launcher,'ClubPulseCacheMigrationPatch_v1.js')&&has(files.launcher,"'cache-migration1'")&&has(files.launcher,'986e4aa662f695d84b1174bf79917cb8e31a10f7'));
+check('launcher pins readability v8 commit',has(files.launcher,'309658e07c56f1932b49c2d19e35d2940b8773f5'));
+check('launcher uses cache migration v1',has(files.launcher,'ClubPulseCacheMigrationPatch_v1.js')&&has(files.launcher,"'cache-migration1'")&&has(files.launcher,'309658e07c56f1932b49c2d19e35d2940b8773f5'));
 check('launcher keeps final polish v3',has(files.launcher,'ClubPulseFinalPolishPatch_v3.js')&&has(files.launcher,"'final-polish3'"));
 check('canonical load order remains stable',has(files.launcher,"+u+'\\n'+i+'\\n'+ds+'\\n'+pv+'\\n'+rg+'\\n'+cm+'\\n'+ccn+'\\n'+fp+'\\n'+q+'\\n'+r"));
 check('launcher retains remote-to-local fallback',has(files.launcher,'if(F.fileExists(file))return F.readString(file)'));

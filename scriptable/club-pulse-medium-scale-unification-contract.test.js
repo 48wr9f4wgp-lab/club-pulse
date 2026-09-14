@@ -6,7 +6,7 @@ let failed=0;
 const check=(name,ok)=>{if(ok)console.log(`✓ ${name}`);else{console.error(`✗ ${name}`);failed++}};
 
 try{new Function(patch);check('Medium scale unification syntax',true)}catch(e){console.error(e);check('Medium scale unification syntax',false)}
-check('launcher pins Medium Scale Unification v3 immutably',launcher.includes('329006d9aa116c9c2777e575191e0154c7735846/scriptable/club-pulse-medium-scale-unification-patch.js'));
+check('launcher pins Medium Scale Unification v3 immutably',launcher.includes('309658e07c56f1932b49c2d19e35d2940b8773f5/scriptable/club-pulse-medium-scale-unification-patch.js'));
 check('launcher uses dedicated Medium Scale Unification v3 cache',launcher.includes('ClubPulseMediumScaleUnificationPatch_v3.js')&&launcher.includes("'medium-scale-unification3'"));
 check('Medium scale patch loads after Previous Result v2',launcher.includes("+sui+'\\n'+pr+'\\n'+msu"));
 check('all Medium team crests share one geometry shell',patch.includes('CP_MSU_TEAM_CREST_SIZE=52')&&patch.includes('CP_MSU_TEAM_WIDTH=96')&&patch.includes('CP_MSU_LOGO_SLOT_HEIGHT=58'));
