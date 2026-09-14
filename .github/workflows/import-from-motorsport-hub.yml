@@ -74,48 +74,6 @@ jobs:
           cp -R _source/scriptable ./scriptable
           rm -rf _source
           rm -f MIGRATION_SENTINEL.md README.migration-note.md MIGRATION_PLAN.md TEMP.md
-          mkdir -p .github/workflows
-          cat > .github/workflows/club-pulse-contract.yml <<'YAML'
-          name: Club Pulse Contract QA
-
-          on:
-            push:
-              branches:
-                - main
-                - migration/import-from-motorsport-hub
-              paths:
-                - 'scriptable/**'
-                - '.github/workflows/club-pulse-contract.yml'
-            pull_request:
-              branches:
-                - main
-              paths:
-                - 'scriptable/**'
-                - '.github/workflows/club-pulse-contract.yml'
-
-          permissions:
-            contents: read
-
-          jobs:
-            contract:
-              runs-on: ubuntu-latest
-              timeout-minutes: 8
-              steps:
-                - uses: actions/checkout@v4
-                - uses: actions/setup-node@v4
-                  with:
-                    node-version: '24'
-                    package-manager-cache: false
-                - name: Run all Club Pulse contract tests
-                  shell: bash
-                  run: |
-                    set -euo pipefail
-                    for test in scriptable/*.test.js; do
-                      echo "::group::$test"
-                      node "$test"
-                      echo "::endgroup::"
-                    done
-          YAML
           cat > README.md <<'EOF'
           # Club Pulse
 
@@ -167,8 +125,8 @@ jobs:
           set -euo pipefail
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add README.md MIGRATION_SOURCE.md scriptable .github/workflows/club-pulse-contract.yml
-          git add -u
+          git add README.md MIGRATION_SOURCE.md scriptable
+          git add -u -- MIGRATION_SENTINEL.md README.migration-note.md MIGRATION_PLAN.md TEMP.md || true
           git commit -m 'Import exact Club Pulse snapshot from Motorsport Hub'
           echo "IMPORT_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
 
@@ -220,13 +178,12 @@ jobs:
             exit 1
           fi
 
-      - name: Finalize migration branch
+      - name: Publish verified migration content
         shell: bash
         run: |
           set -euo pipefail
-          rm .github/workflows/import-from-motorsport-hub.yml
-          git add -A
+          git add README.md MIGRATION_SOURCE.md scriptable
           git commit -m 'Re-pin Club Pulse runtime to dedicated repository'
           git push origin HEAD:migration/import-from-motorsport-hub
 
-# Registered on default branch; touching this file triggers the one-shot migration.
+# Workflow-file creation/removal is intentionally handled outside this bot push.
