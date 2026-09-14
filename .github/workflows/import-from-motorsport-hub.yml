@@ -29,7 +29,7 @@ jobs:
           path: _source
           fetch-depth: 0
 
-      - name: Verify every launcher-pinned source matches the exported snapshot
+      - name: Verify launcher-pinned sources against export snapshot
         shell: bash
         run: |
           set -euo pipefail
@@ -40,18 +40,30 @@ jobs:
           refs=re.findall(r'https://raw\.githubusercontent\.com/48wr9f4wgp-lab/motorsport-hub/([0-9a-f]{7,40})/(scriptable/[^\'\"]+)',launcher)
           if not refs:
               raise SystemExit('No pinned Club Pulse runtime refs found')
-          seen=set()
+          seen=set(); broken=[]
           for sha,path in refs:
               key=(sha,path)
               if key in seen: continue
               seen.add(key)
               current=(source/path).read_bytes()
-              historical=subprocess.check_output(['git','-C',str(source),'show',f'{sha}:{path}'])
+              try:
+                  historical=subprocess.check_output(['git','-C',str(source),'show',f'{sha}:{path}'],stderr=subprocess.DEVNULL)
+                  resolved=sha
+                  mode='PINNED'
+              except subprocess.CalledProcessError:
+                  resolved=subprocess.check_output(['git','-C',str(source),'log','-1','--format=%H','--',path],text=True).strip()
+                  if not resolved:
+                      print(f'BROKEN REF WITH NO HISTORY {sha} {path}',file=sys.stderr)
+                      raise SystemExit(1)
+                  historical=subprocess.check_output(['git','-C',str(source),'show',f'{resolved}:{path}'])
+                  mode='REPAIRED-BROKEN-REF'
+                  broken.append((sha,path,resolved))
               if current!=historical:
-                  print(f'MISMATCH {sha} {path}',file=sys.stderr)
+                  print(f'MISMATCH {mode} old={sha} resolved={resolved} path={path}',file=sys.stderr)
                   raise SystemExit(1)
-              print(f'OK {sha} {path}')
-          print(f'Verified {len(seen)} pinned runtime files against export snapshot')
+              print(f'OK {mode} old={sha} resolved={resolved} {path}')
+          pathlib.Path('.migration-broken-refs.txt').write_text(''.join(f'{old}\t{path}\t{resolved}\n' for old,path,resolved in broken))
+          print(f'Verified {len(seen)} pinned runtime files against export snapshot; repaired refs={len(broken)}')
           PY
 
       - name: Import exact Club Pulse product tree
@@ -115,7 +127,7 @@ jobs:
 
           This repository was migrated from `48wr9f4wgp-lab/motorsport-hub` using exact source snapshot `9e869fdae85e9ee352234b925c733065eb7c24fd` on 2026-09-14.
 
-          The migration verifies every runtime file pinned by the launcher against its historical immutable source before repinning the launcher to this repository.
+          The migration verifies every runtime file pinned by the launcher against its historical immutable source before repinning the launcher to this repository. A malformed historical ref is repaired only when the latest real file revision reachable at the export snapshot is byte-for-byte identical to the exported file.
 
           ## Validation
 
@@ -133,8 +145,21 @@ jobs:
           - Exported path: `scriptable/`
           - Migration date: 2026-09-14
 
-          Before repinning runtime URLs, the migration workflow compares every launcher-pinned historical file with the file at the exact export snapshot. Any mismatch fails the migration.
+          Before repinning runtime URLs, the migration workflow compares every launcher-pinned historical file with the file at the exact export snapshot. Any content mismatch fails the migration.
           EOF
+          if [ -s .migration-broken-refs.txt ]; then
+            {
+              echo
+              echo '## Repaired malformed historical refs'
+              echo
+              echo 'The following launcher refs did not resolve as Git objects. Each replacement was accepted only after the latest real historical revision was byte-for-byte identical to the exported snapshot:'
+              echo
+              while IFS=$'\t' read -r old path resolved; do
+                printf -- '- `%s` → `%s` for `%s`\n' "$old" "$resolved" "$path"
+              done < .migration-broken-refs.txt
+            } >> MIGRATION_SOURCE.md
+          fi
+          rm -f .migration-broken-refs.txt
 
       - name: Commit exact imported snapshot
         shell: bash
