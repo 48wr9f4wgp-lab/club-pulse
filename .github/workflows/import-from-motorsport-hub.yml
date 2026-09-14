@@ -172,7 +172,7 @@ jobs:
           git commit -m 'Import exact Club Pulse snapshot from Motorsport Hub'
           echo "IMPORT_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
 
-      - name: Re-pin launcher and pin contracts to dedicated repository
+      - name: Re-pin launcher and repository contracts
         shell: bash
         run: |
           set -euo pipefail
@@ -195,14 +195,15 @@ jobs:
               original=test
               for sha in sorted(old_shas,key=len,reverse=True):
                   test=test.replace(sha,import_sha)
+              test=test.replace('48wr9f4wgp-lab/motorsport-hub','48wr9f4wgp-lab/club-pulse')
               if test!=original:
                   test_path.write_text(test)
                   changed_tests.append(test_path.name)
           with pathlib.Path('MIGRATION_SOURCE.md').open('a') as f:
               f.write(f'\n- Imported immutable snapshot commit in this repository: `{import_sha}`\n')
               f.write('- Launcher runtime URLs were repinned to that immutable snapshot after byte-for-byte parity verification.\n')
-              f.write(f'- Pin-contract tests updated to the destination immutable snapshot: {", ".join(changed_tests)}\n')
-          print('Updated pin-contract tests:', ', '.join(changed_tests) or '(none)')
+              f.write(f'- Pin/repository contract tests updated for the destination repository: {", ".join(changed_tests)}\n')
+          print('Updated destination contracts:', ', '.join(changed_tests) or '(none)')
           PY
 
       - name: Run all Club Pulse tests before publishing migration branch
