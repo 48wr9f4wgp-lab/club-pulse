@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "phase": "主要機能実装",
+  "checks": {
+    "boot": "warn",
+    "test": "warn",
+    "device": "warn",
+    "save": "na",
+    "analytics": "na",
+    "performance": "none",
+    "release": "warn"
+  },
+  "next": "現行ウィジェットの表示とデータ取得を実機で確認する",
+  "note": "主要機能実装段階として管理。保存・分析計測は対象外。",
+  "updated_at": "2026-09-15"
+}
