@@ -8,9 +8,9 @@ check('launcher uses core v2 local cache',src.includes('ClubPulseCore_v2.js')&&s
 check('launcher uses resilience v6 local cache',src.includes('ClubPulseResiliencePatch_v6.js'));
 check('launcher fetch tag is resilience6',src.includes("'resilience6'"));
 check('launcher pins resilience v6 commit',src.includes('309658e07c56f1932b49c2d19e35d2940b8773f5'));
-check('launcher uses data policy v8 local cache',src.includes('ClubPulseDataPolicyPatch_v8.js'));
-check('launcher fetch tag is data-policy8',src.includes("'data-policy8'"));
-check('launcher pins data policy v8 commit',src.includes('309658e07c56f1932b49c2d19e35d2940b8773f5'));
+check('launcher uses data policy v9 local cache',src.includes('ClubPulseDataPolicyPatch_v9.js'));
+check('launcher fetch tag is data-policy9',src.includes("'data-policy9'"));
+check('launcher pins data policy v9 commit',src.includes('e2ebcad939fa2409e41e7a20954e7b76e7dbc87e/scriptable/club-pulse-data-policy-patch.js'));
 check('launcher uses premium visual v6 local cache',src.includes('ClubPulsePremiumVisualPatch_v6.js'));
 check('launcher fetch tag is premium6',src.includes("'premium6'"));
 check('launcher pins premium visual v6 commit',src.includes('309658e07c56f1932b49c2d19e35d2940b8773f5/scriptable/club-pulse-premium-visual-patch.js'));
@@ -39,6 +39,6 @@ check('canonical form system runs immediately before Small UI unification',src.i
 check('Previous Result runs after Small UI unification',src.includes("+fs+'\\n'+sui+'\\n'+pr"));
 check('Medium Scale Unification v3 runs last',src.includes("+sui+'\\n'+pr+'\\n'+msu,b="));
 check('patch loader remains local-first',src.includes("if(F.fileExists(file)){let s=F.readString(file);if(s&&s.length>=min)return s}"));
-check('launcher documents 44-club architecture',src.includes('Club Pulse 44-club runtime')&&src.includes('Wave 4 adds RC Lens')&&src.includes('Data Policy v8')&&src.includes('Premium Visual v6')&&src.includes('Small Presentation v11')&&src.includes('Wave 2 Theme v5')&&src.includes('Wave 3 Netherlands v2')&&src.includes('Premier League Venue Registry v1')&&src.includes('Canonical Form System v1')&&src.includes('Small UI Unification v3')&&src.includes('Previous Result v2')&&src.includes('Medium Scale Unification v3'));
+check('launcher documents 44-club architecture',src.includes('Club Pulse 44-club runtime')&&src.includes('Wave 4 adds RC Lens')&&src.includes('Data Policy v9')&&src.includes('Premium Visual v6')&&src.includes('Small Presentation v11')&&src.includes('Wave 2 Theme v5')&&src.includes('Wave 3 Netherlands v2')&&src.includes('Premier League Venue Registry v1')&&src.includes('Canonical Form System v1')&&src.includes('Small UI Unification v3')&&src.includes('Previous Result v2')&&src.includes('Medium Scale Unification v3'));
 if(failed){console.error(`\nLauncher version QA FAILED: ${failed}`);process.exit(1)}
 console.log('\nClub Pulse 44-club launcher version QA PASSED');

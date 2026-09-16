@@ -7,9 +7,10 @@ let failed=0;
 const check=(n,ok)=>{if(ok)console.log(`✓ ${n}`);else{console.error(`✗ ${n}`);failed++}};
 const has=(s,x)=>s.includes(x);
 try{new Function(`return (async()=>{\n${policy}\n})`);check('data policy syntax',true)}catch(e){console.error(e.message);check('data policy syntax',false)}
-check('launcher pins data policy v8',has(launcher,'309658e07c56f1932b49c2d19e35d2940b8773f5')&&has(launcher,'ClubPulseDataPolicyPatch_v8.js')&&has(launcher,"'data-policy8'"));
+check('launcher pins data policy v9',has(launcher,'e2ebcad939fa2409e41e7a20954e7b76e7dbc87e')&&has(launcher,'ClubPulseDataPolicyPatch_v9.js')&&has(launcher,"'data-policy9'"));
 check('data policy loads after resilience',has(launcher,"+q+'\\n'+r+'\\n'+dp"));
 check('adaptive refresh tiers exist',['3*60*1000','5*60*1000','15*60*1000','30*60*1000','60*60*1000'].every(x=>has(policy,x)));
+check('explicit in-app runs bypass normal match-cache TTL',has(policy,'manualRefresh=!!config?.runsInApp')&&has(policy,'if(!manualRefresh&&cached&&Number.isFinite(cached.fetchedAt)&&now-cached.fetchedAt<ttl)')&&has(policy,"dataPolicy:manualRefresh?'manual-network':'network'"));
 check('standings cache is league-shared',has(policy,"standings_${String(club.comp||'league').toLowerCase()}.json")&&has(policy,'CP_DP_STANDINGS_TTL=30*60*1000'));
 check('supplemental next cache is twelve hours',has(policy,'CP_DP_NEXT_OVERLAY_TTL=12*60*60*1000'));
 check('live quota reserve ceiling is forty',has(policy,'CP_DP_NEXT_QUOTA_CEILING=40'));

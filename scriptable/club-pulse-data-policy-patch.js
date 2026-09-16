@@ -1,9 +1,10 @@
-// Club Pulse data policy v8.
+// Club Pulse data policy v9.
 // Adaptive refresh/cache policy for multi-club home-screen operation.
 // Goals: keep LIVE/near-kickoff data responsive, reduce provider traffic,
 // share league standings and global LIVE snapshots, reserve API-Football quota,
 // keep stale semantics honest, reject impossible future-result states,
-// and prevent legacy simulated match modes from leaking onto Home Screen widgets.
+// prevent legacy simulated match modes from leaking onto Home Screen widgets,
+// and let explicit in-app runs bypass the normal Home Screen match-cache TTL.
 
 const CP_DP_BASE_LOAD_DATA=loadData,
       CP_DP_BASE_NEXT_OVERLAY=applyNextOverlay,
@@ -139,9 +140,9 @@ loadData=async function(t){
   if(cpDpForcedOutage())return cpDpSanitizeStale(await CP_DP_BASE_LOAD_DATA(t));
 
   let cached=cpDpSanitizeTemporal(cpDpNormalize(readJSON(cachePath())));
-  const now=Date.now(),ttl=cpDpMatchTtl(cached);
+  const now=Date.now(),ttl=cpDpMatchTtl(cached),manualRefresh=!!config?.runsInApp;
   const standingsPromise=cpDpStandings(t);
-  if(cached&&Number.isFinite(cached.fetchedAt)&&now-cached.fetchedAt<ttl){
+  if(!manualRefresh&&cached&&Number.isFinite(cached.fetchedAt)&&now-cached.fetchedAt<ttl){
     const sj=await standingsPromise;
     return cpDpApplyStanding({...cached,stale:false,dataPolicy:'cache'},sj)
   }
@@ -151,7 +152,7 @@ loadData=async function(t){
     let fresh=cpDpSanitizeTemporal(mapData(cpDpTemporalizeMatches(matches),sj||{}));
     if(!sj&&cached)fresh={...fresh,rank:cached.rank,points:cached.points};
     writeJSON(cachePath(),fresh);
-    return{...fresh,stale:false,dataPolicy:'network'}
+    return{...fresh,stale:false,dataPolicy:manualRefresh?'manual-network':'network'}
   }catch(e){
     if(cached){
       const sj=cpDpCachedStandings();
