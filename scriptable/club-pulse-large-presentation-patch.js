@@ -1,6 +1,6 @@
-// Club Pulse Large Presentation v1.
+// Club Pulse Large Presentation v2.
 // Owns the Large family only and increases shared HOME/AWAY readability.
-// Medium/Small information architecture remains otherwise unchanged.
+// v2 accepts Scriptable Large-family variants (large / extraLarge) while keeping Medium/Small unchanged.
 
 const CP_LARGE_BASE_BUILD_MEDIUM=buildMedium;
 const CP_LARGE_BASE_SIDE_PILL=typeof sidePill==='function'?sidePill:null;
@@ -10,6 +10,7 @@ function cpLargeShellText(){return CP_COMMON_SHELL?.text||'#F8FAFC'}
 function cpLargeShellMuted(){return CP_COMMON_SHELL?.muted||'#AEB5C2'}
 function cpLargeCardText(){let t=cpLargeTheme();return t?.cardText||t?.text||cpLargeShellText()}
 function cpLargeGuard(t,min=.68){if(!t)return t;t.lineLimit=1;t.minimumScaleFactor=min;return t}
+function cpLargeFamily(){const f=String(config?.widgetFamily||family||'').toLowerCase().replace(/[\s_-]/g,'');return f==='large'||f==='extralarge'}
 function cpLargeResultStyle(result){return result==='W'?{label:'勝利',fg:'#8EF7A5',bg:'#103A1F'}:result==='L'?{label:'敗戦',fg:'#FF8A84',bg:'#481817'}:{label:'引分',fg:'#F2F2F5',bg:'#36383E'}}
 
 // The existing 6.8pt side label is too small at a glance on Home Screen.
@@ -163,8 +164,8 @@ function buildLarge(d,imgs){
 }
 
 // Core currently routes every non-Small family through buildMedium.
-// Preserve that dispatch for existing code while giving Large its own renderer.
+// Preserve that dispatch for existing code while giving Large-family variants their own renderer.
 buildMedium=function(d,imgs){
-  if(family==='large')return buildLarge(d,imgs);
+  if(cpLargeFamily())return buildLarge(d,imgs);
   return CP_LARGE_BASE_BUILD_MEDIUM(d,imgs)
 };
