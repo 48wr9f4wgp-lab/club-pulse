@@ -1,6 +1,7 @@
-// Club Pulse Large Presentation v2.
+// Club Pulse Large Presentation v3.
 // Owns the Large family only and increases shared HOME/AWAY readability.
 // v2 accepts Scriptable Large-family variants (large / extraLarge) while keeping Medium/Small unchanged.
+// v3 decouples the dark HOME/AWAY pill text from light-card theme text so side labels stay readable across clubs.
 
 const CP_LARGE_BASE_BUILD_MEDIUM=buildMedium;
 const CP_LARGE_BASE_SIDE_PILL=typeof sidePill==='function'?sidePill:null;
@@ -13,10 +14,10 @@ function cpLargeGuard(t,min=.68){if(!t)return t;t.lineLimit=1;t.minimumScaleFact
 function cpLargeFamily(){const f=String(config?.widgetFamily||family||'').toLowerCase().replace(/[\s_-]/g,'');return f==='large'||f==='extralarge'}
 function cpLargeResultStyle(result){return result==='W'?{label:'勝利',fg:'#8EF7A5',bg:'#103A1F'}:result==='L'?{label:'敗戦',fg:'#FF8A84',bg:'#481817'}:{label:'引分',fg:'#F2F2F5',bg:'#36383E'}}
 
-// The existing 6.8pt side label is too small at a glance on Home Screen.
-// Keep the same semantic treatment, but raise type/padding for both existing families.
+// The side label sits on a dark panel, so its foreground must stay independent from
+// club card text (some themes intentionally use dark card text on light match cards).
 sidePill=function(parent,m,small=false){
-  const t=cpLargeTheme(),fg=t?.cardText||t?.text||'#F4F4F6',accent=t?.accentSoft||t?.headerAccent||club.a,
+  const t=cpLargeTheme(),fg=cpLargeShellText(),accent=t?.accentSoft||t?.headerAccent||club.a,
         p=parent.addStack(),label=sideTag(m);
   p.setPadding(small?2.4:2.8,small?7:9,small?2.4:2.8,small?7:9);
   p.cornerRadius=9;
