@@ -1,10 +1,10 @@
-// Club Pulse provider reliability v2.
-// Wraps football-data.org calls with one conservative retry for transient failures only.
-// Loaded after Data Policy so stale fallbacks can retain diagnostics without changing renderers.
-// Uses a provider-specific namespace to avoid collisions with Previous Result (CP_PR_*).
+// Club Pulse provider reliability v3.
+// Serializes football-data.org calls across widgets to stay below the free-plan minute limit,
+// then retries transient failures once. Loaded after Data Policy.
 
 const CP_PROV_BASE_API=api;
 const CP_PROV_BASE_LOAD_DATA=loadData;
+const CP_PROV_MIN_GAP_MS=6500;
 let CP_PROV_LAST_ERROR=null;
 
 function cpProvMessage(e){
@@ -23,10 +23,24 @@ function cpProvDelay(e){
 
 function cpProvSleep(ms){
   return new Promise(resolve=>{
+    if(ms<=0)return resolve();
     if(typeof Timer!=='undefined'&&typeof Timer.schedule==='function')Timer.schedule(ms,false,resolve);
     else if(typeof setTimeout==='function')setTimeout(resolve,ms);
     else resolve()
   })
+}
+
+function cpProvGatePath(){return path('football_data_rate_gate.json')}
+
+function cpProvReserveSlot(){
+  const now=Date.now(),p=cpProvGatePath(),g=readJSON(p,{nextAt:0}),prev=Number(g?.nextAt||0),slot=Math.max(now,prev),nextAt=slot+CP_PROV_MIN_GAP_MS;
+  try{writeJSON(p,{nextAt,reservedAt:now,clubId:club?.id||null})}catch{}
+  return Math.max(0,slot-now)
+}
+
+async function cpProvRateGate(){
+  const wait=cpProvReserveSlot();
+  if(wait>0)await cpProvSleep(wait)
 }
 
 function cpProvRemember(endpoint,e,retried){
@@ -35,6 +49,7 @@ function cpProvRemember(endpoint,e,retried){
 }
 
 api=async function(endpoint,t){
+  await cpProvRateGate();
   try{
     return await CP_PROV_BASE_API(endpoint,t)
   }catch(e){
@@ -43,6 +58,7 @@ api=async function(endpoint,t){
       throw e
     }
     await cpProvSleep(cpProvDelay(e));
+    await cpProvRateGate();
     try{
       return await CP_PROV_BASE_API(endpoint,t)
     }catch(e2){
