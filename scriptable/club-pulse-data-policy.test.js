@@ -3,7 +3,7 @@ const path=require('path');
 const vm=require('vm');
 const src=fs.readFileSync(path.join(__dirname,'club-pulse-data-policy-patch.js'),'utf8');
 
-function makeContext({now=Date.now(),mode='NEXT',kickoffMs=now+72*3600e3,cachedAge=10*60e3,nextCache=null,quotaCount=0,liveRows=null}={}){
+function makeContext({now=Date.now(),mode='NEXT',kickoffMs=now+72*3600e3,cachedAge=10*60e3,nextCache=null,quotaCount=0,liveRows=null,runsInApp=false}={}){
   const RealDate=Date;
   class FakeDate extends RealDate{constructor(v){super(v===undefined?now:v)}static now(){return now}}
   let apiCalls=[],baseNextCalls=0,baseLiveCalls=0,liveApiCalls=0,resolveCalls=0,writes=[];
@@ -13,7 +13,7 @@ function makeContext({now=Date.now(),mode='NEXT',kickoffMs=now+72*3600e3,cachedA
   const store={'/cache/data_manutd.json':cached,'/cache/standings_pl.json':{fetchedAt:now-5*60e3,payload:standings},'/cache/api_football_quota.json':{day:'2026-08-31',count:quotaCount}};
   if(nextCache!==null)store['/cache/next_all_manutd.json']=nextCache;
   const ctx={
-    console,JSON,Object,Date:FakeDate,POST:10*60*60e3,
+    console,JSON,Object,Date:FakeDate,POST:10*60*60e3,config:{runsInApp},
     club:{comp:'PL',team:66,liveSearch:'Manchester United'},
     loadData:async()=>({...cached,stale:true,resilience:'cache'}),
     applyNextOverlay:async d=>{baseNextCalls++;return{...d,baseNext:true}},
@@ -53,6 +53,10 @@ function makeContext({now=Date.now(),mode='NEXT',kickoffMs=now+72*3600e3,cachedA
   let out=await c.loadData('t');
   check('far fresh match cache avoids match request',!c.__state.apiCalls.some(x=>x.includes('/matches?')));
   check('shared standings overlay updates rank and points',out.rank===4&&out.points===21);
+
+  c=makeContext({runsInApp:true});out=await c.loadData('t');
+  check('explicit in-app run bypasses far-match TTL',c.__state.apiCalls.some(x=>x.includes('/matches?')));
+  check('explicit in-app refresh is marked manual-network',out.dataPolicy==='manual-network');
 
   c=makeContext({kickoffMs:Date.now()+20*60e3,cachedAge:4*60e3});out=await c.loadData('t');
   check('near kickoff cache older than three minutes refreshes match data',c.__state.apiCalls.some(x=>x.includes('/matches?')));
