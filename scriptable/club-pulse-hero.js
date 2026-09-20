@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.20
+// Club Pulse Hero Prototype v0.21
 // Real Madrid post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -479,6 +479,158 @@ function recentForm(team){
     });
 }
 
+function makeSmallHeroPanel(hero){
+  const W=66,H=78;
+  const ctx=new DrawContext();
+  ctx.size=new Size(W,H);
+  ctx.opaque=true;
+  ctx.respectScreenScale=false;
+
+  ctx.setFillColor(C('#0D1320'));
+  ctx.fillRect(new Rect(0,0,W,H));
+
+  if(hero){
+    const iw=hero.size.width||1, ih=hero.size.height||1;
+    const scale=Math.max(W/iw,H/ih);
+    const dw=iw*scale,dh=ih*scale;
+    const x=(W-dw)/2;
+    const y=(H-dh)/2+2;
+    ctx.drawImageInRect(hero,new Rect(x,y,dw,dh));
+  }
+
+  return ctx.getImage();
+}
+
+function txtSmall(parent,value,size,weight='semibold',color='#FFFFFF',alpha=1){
+  const t=txt(parent,value,size,weight,color,alpha);
+  t.minimumScaleFactor=.82;
+  return t;
+}
+
+function resultChipSmall(parent,result){
+  const p=parent.addStack();
+  p.setPadding(2,5,2,5);
+  p.cornerRadius=6;
+  const m={
+    WIN:['#E8BC52','#090B10','勝'],
+    DRAW:['#69707E','#FFFFFF','分'],
+    LOSS:['#8E2935','#FFFFFF','敗']
+  }[result]||['#454B57','#FFFFFF','—'];
+  p.backgroundColor=C(m[0],.96);
+  txtSmall(p,m[2],7.6,'heavy',m[1],1);
+}
+
+function buildSmall(data,images){
+  const w=new ListWidget();
+  w.setPadding(8,8,8,8);
+  w.backgroundColor=C('#060910');
+
+  const root=w.addStack();
+  root.layoutVertically();
+  root.setPadding(0,0,0,0);
+
+  // Header
+  const h=root.addStack();
+  h.layoutHorizontally();
+  h.centerAlignContent();
+
+  if(images.crest){
+    const im=h.addImage(images.crest);
+    im.imageSize=new Size(19,19);
+  }
+
+  spacer(h,5);
+  txtSmall(h,'レアル',10.4,'heavy','#FFFFFF',1);
+  h.addSpacer();
+  resultChipSmall(h,data.fixture.result);
+
+  spacer(root,6);
+
+  // Main body
+  const body=root.addStack();
+  body.layoutHorizontally();
+  body.topAlignContent();
+
+  const left=body.addStack();
+  left.layoutVertically();
+
+  txtSmall(
+    left,
+    String(data.fixture.ours)+' - '+String(data.fixture.theirs),
+    22,
+    'heavy',
+    '#FFFFFF',
+    1
+  );
+
+  spacer(left,2);
+
+  txtSmall(
+    left,
+    compact(data.fixture.opponent,10),
+    8.8,
+    'bold',
+    '#FFFFFF',
+    1
+  );
+
+  txtSmall(
+    left,
+    (data.fixture.home?'ホーム':'アウェイ')+' · '+fmtDate(data.fixture.date),
+    7.1,
+    'semibold',
+    '#FFFFFF',
+    .88
+  );
+
+  left.addSpacer();
+
+  txtSmall(left,'MVP',6.7,'heavy','#F3C75B',1);
+  spacer(left,1);
+
+  const mvp=left.addStack();
+  mvp.layoutHorizontally();
+  txtSmall(
+    mvp,
+    compact(displayPlayerName(data.hero?.name),9),
+    8.7,
+    'bold',
+    '#FFFFFF',
+    1
+  );
+  spacer(mvp,4);
+  txtSmall(
+    mvp,
+    data.hero?.rating?.toFixed(1)??'—',
+    8.7,
+    'heavy',
+    '#F3C75B',
+    1
+  );
+
+  body.addSpacer(6);
+
+  const right=body.addStack();
+  right.layoutVertically();
+  right.centerAlignContent();
+
+  if(images.hero){
+    const hero=right.addImage(makeSmallHeroPanel(images.hero));
+    hero.imageSize=new Size(66,78);
+    hero.cornerRadius=11;
+  }else{
+    const ph=right.addStack();
+    ph.size=new Size(66,78);
+    ph.cornerRadius=11;
+    ph.backgroundColor=C('#111725');
+    ph.centerAlignContent();
+    txtSmall(ph,'HERO',8,'heavy','#FFFFFF',.65);
+  }
+
+  w.refreshAfterDate=new Date(Date.now()+CP.refreshMs);
+  return w;
+}
+
 function buildMedium(data,images){
   const w=new ListWidget();
   w.setPadding(0,0,0,0);
@@ -850,10 +1002,17 @@ try{
   const requested=String(args.widgetParameter||'').toLowerCase();
   const family=config.runsInWidget
     ? (config.widgetFamily||'medium')
-    : (requested.includes('medium')?'medium':'large');
-  widget=(family==='large'||family==='extraLarge')
-    ? buildLarge(data,{hero,crest})
-    : buildMedium(data,{hero,crest});
+    : requested.includes('small')
+      ? 'small'
+      : requested.includes('medium')
+        ? 'medium'
+        : 'large';
+
+  widget=family==='small'
+    ? buildSmall(data,{hero,crest})
+    : (family==='large'||family==='extraLarge')
+      ? buildLarge(data,{hero,crest})
+      : buildMedium(data,{hero,crest});
 }catch(e){
   widget=errorWidget('データ取得失敗\n'+String(e));
 }
@@ -861,7 +1020,8 @@ try{
 Script.setWidget(widget);
 if(config.runsInApp){
   const requested=String(args.widgetParameter||'').toLowerCase();
-  if(requested.includes('medium'))await widget.presentMedium();
+  if(requested.includes('small'))await widget.presentSmall();
+  else if(requested.includes('medium'))await widget.presentMedium();
   else await widget.presentLarge();
 }
 Script.complete();
