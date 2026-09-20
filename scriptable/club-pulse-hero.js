@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.27
+// Club Pulse Hero Prototype v0.28
 // Real Madrid post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -11,6 +11,18 @@ const CP = {
   imageBase: 'https://images.fotmob.com/image_resources',
   cacheTtlMs: 60 * 60 * 1000,
   refreshMs: 5 * 60 * 1000,
+};
+
+const UI = {
+  bg: '#060910',
+  panel: '#111C35',
+  panelDark: '#0B1730',
+  hero: '#0D1320',
+  border: '#2A3D66',
+  borderSoft: '#20345A',
+  accent: UI.accent,
+  text: '#FFFFFF',
+  sub: '#DCE6F8',
 };
 
 const fm = FileManager.local();
@@ -523,7 +535,7 @@ function resultChipSmall(parent,result){
 function buildSmall(data,images){
   const w=new ListWidget();
   w.setPadding(8,8,8,8);
-  w.backgroundColor=C('#060910');
+  w.backgroundColor=C(UI.bg);
 
   const root=w.addStack();
   root.layoutVertically();
@@ -552,9 +564,9 @@ function buildSmall(data,images){
   body.topAlignContent();
   body.setPadding(7,7,7,7);
   body.cornerRadius=12;
-  body.backgroundColor=C('#111C35',.98);
+  body.backgroundColor=C(UI.panel,.98);
   body.borderWidth=1;
-  body.borderColor=C('#2A3D66',.82);
+  body.borderColor=C(UI.border,.82);
 
   const left=body.addStack();
   left.layoutVertically();
@@ -590,7 +602,7 @@ function buildSmall(data,images){
 
   left.addSpacer(4);
 
-  txtSmall(left,'MVP',6.9,'heavy','#F3C75B',1);
+  txtSmall(left,'MVP',6.9,'heavy',UI.accent,1);
   spacer(left,1);
 
   const mvp=left.addStack();
@@ -609,7 +621,7 @@ function buildSmall(data,images){
     data.hero?.rating?.toFixed(1)??'—',
     9.0,
     'heavy',
-    '#F3C75B',
+    UI.accent,
     1
   );
 
@@ -667,7 +679,7 @@ function txtMedium(parent,value,size,weight='semibold',color='#FFFFFF',alpha=1){
 function buildMedium(data,images){
   const w=new ListWidget();
   w.setPadding(5,7,5,7);
-  w.backgroundColor=C('#060910');
+  w.backgroundColor=C(UI.bg);
 
   const root=w.addStack();
   root.layoutVertically();
@@ -723,11 +735,11 @@ function buildMedium(data,images){
   info.size=new Size(225,0);
   info.setPadding(6,9,6,9);
   info.cornerRadius=11;
-  info.backgroundColor=C('#111C35',.98);
+  info.backgroundColor=C(UI.panel,.98);
   info.borderWidth=1;
-  info.borderColor=C('#2A3D66',.85);
+  info.borderColor=C(UI.border,.85);
 
-  txtMedium(info,'★ 評価TOP3',8.6,'bold','#F3C75B',1);
+  txtMedium(info,'★ 評価TOP3',8.6,'bold',UI.accent,1);
   spacer(info,2);
 
   data.top3.forEach((p,i)=>{
@@ -735,7 +747,7 @@ function buildMedium(data,images){
     r.layoutHorizontally();
     r.centerAlignContent();
 
-    txtMedium(r,String(i+1),8.1,'heavy',i===0?'#F3C75B':'#FFFFFF',1);
+    txtMedium(r,String(i+1),8.1,'heavy',i===0?UI.accent:'#FFFFFF',1);
     spacer(r,5);
     txtMedium(
       r,
@@ -751,7 +763,7 @@ function buildMedium(data,images){
       p.rating.toFixed(1),
       9.3,
       'heavy',
-      i===0?'#F3C75B':'#FFFFFF',
+      i===0?UI.accent:'#FFFFFF',
       1
     );
   });
@@ -789,9 +801,9 @@ function buildMedium(data,images){
     const heroFrame=hero.addStack();
     heroFrame.setPadding(3,3,3,3);
     heroFrame.cornerRadius=12;
-    heroFrame.backgroundColor=C('#111C35',.98);
+    heroFrame.backgroundColor=C(UI.panel,.98);
     heroFrame.borderWidth=1;
-    heroFrame.borderColor=C('#2A3D66',.85);
+    heroFrame.borderColor=C(UI.border,.85);
 
     const hi=heroFrame.addImage(makeMediumHeroPanel(images.hero));
     hi.imageSize=new Size(76,76);
@@ -811,14 +823,16 @@ function buildMedium(data,images){
   mvp.layoutHorizontally();
   mvp.centerAlignContent();
   mvp.setPadding(3,5,3,5);
-  mvp.cornerRadius=8;
-  mvp.backgroundColor=C('#0A0F18',.96);
+  mvp.cornerRadius=9;
+  mvp.backgroundColor=C(UI.panelDark,.98);
+  mvp.borderWidth=1;
+  mvp.borderColor=C(UI.borderSoft,.62);
 
-  txtMedium(mvp,'MVP',6.1,'heavy','#F3C75B',1);
+  txtMedium(mvp,'MVP',6.1,'heavy',UI.accent,1);
   spacer(mvp,3);
   txtMedium(mvp,compact(displayPlayerName(data.hero?.name),8),7.6,'bold','#FFFFFF',1);
   spacer(mvp,3);
-  txtMedium(mvp,data.hero?.rating?.toFixed(1)??'—',7.6,'heavy','#F3C75B',1);
+  txtMedium(mvp,data.hero?.rating?.toFixed(1)??'—',7.6,'heavy',UI.accent,1);
 
   root.addSpacer();
 
@@ -828,11 +842,11 @@ function buildMedium(data,images){
   footer.centerAlignContent();
   footer.setPadding(3,6,3,6);
   footer.cornerRadius=8;
-  footer.backgroundColor=C('#0B1730',.98);
+  footer.backgroundColor=C(UI.panelDark,.98);
   footer.borderWidth=1;
-  footer.borderColor=C('#20345A',.70);
+  footer.borderColor=C(UI.borderSoft,.70);
 
-  txtMedium(footer,'次戦',7.2,'heavy','#F3C75B',1);
+  txtMedium(footer,'次戦',7.2,'heavy',UI.accent,1);
   spacer(footer,5);
 
   if(data.next){
@@ -869,7 +883,7 @@ function makeLargeBackground(){
   ctx.opaque=true;
   ctx.respectScreenScale=false;
 
-  ctx.setFillColor(C('#060910'));
+  ctx.setFillColor(C(UI.bg));
   ctx.fillRect(new Rect(0,0,W,H));
 
   return ctx.getImage();
@@ -986,9 +1000,14 @@ function buildLarge(data,images){
 
   const left=main.addStack();
   left.layoutVertically();
-  left.size=new Size(184,0);
+  left.size=new Size(188,0);
+  left.setPadding(7,8,7,8);
+  left.cornerRadius=12;
+  left.backgroundColor=C(UI.panel,.98);
+  left.borderWidth=1;
+  left.borderColor=C(UI.border,.82);
 
-  txtLarge(left,'★ 評価TOP3',11.7,'bold','#F3C75B',1);
+  txtLarge(left,'★ 評価TOP3',11.7,'bold',UI.accent,1);
   spacer(left,4);
 
   data.top3.forEach((p,i)=>{
@@ -996,7 +1015,7 @@ function buildLarge(data,images){
     r.layoutHorizontally();
     r.centerAlignContent();
 
-    txtLarge(r,String(i+1),10.7,'heavy',i===0?'#F3C75B':'#FFFFFF',1);
+    txtLarge(r,String(i+1),10.7,'heavy',i===0?UI.accent:'#FFFFFF',1);
     spacer(r,7);
 
     txtLarge(
@@ -1015,7 +1034,7 @@ function buildLarge(data,images){
       p.rating.toFixed(1),
       12.8,
       'heavy',
-      i===0?'#F3C75B':'#FFFFFF',
+      i===0?UI.accent:'#FFFFFF',
       1
     );
 
@@ -1042,7 +1061,7 @@ function buildLarge(data,images){
     spacer(left,1);
   });
 
-  main.addSpacer(10);
+  main.addSpacer(8);
 
   const right=main.addStack();
   right.layoutVertically();
@@ -1050,9 +1069,16 @@ function buildLarge(data,images){
   right.centerAlignContent();
 
   if(images.hero){
-    const hi=right.addImage(makeHeroPanel(images.hero));
-    hi.imageSize=new Size(124,152);
-    hi.cornerRadius=14;
+    const heroFrame=right.addStack();
+    heroFrame.setPadding(3,3,3,3);
+    heroFrame.cornerRadius=14;
+    heroFrame.backgroundColor=C(UI.panel,.98);
+    heroFrame.borderWidth=1;
+    heroFrame.borderColor=C(UI.border,.82);
+
+    const hi=heroFrame.addImage(makeHeroPanel(images.hero));
+    hi.imageSize=new Size(118,146);
+    hi.cornerRadius=11;
   }else{
     const placeholder=right.addStack();
     placeholder.size=new Size(124,152);
@@ -1069,13 +1095,15 @@ function buildLarge(data,images){
   heroCard.centerAlignContent();
   heroCard.setPadding(7,8,7,8);
   heroCard.cornerRadius=11;
-  heroCard.backgroundColor=C('#0A0F18',.96);
+  heroCard.backgroundColor=C(UI.panelDark,.98);
+  heroCard.borderWidth=1;
+  heroCard.borderColor=C(UI.borderSoft,.62);
 
-  txtLarge(heroCard,'MVP',8.2,'heavy','#F3C75B',1);
+  txtLarge(heroCard,'MVP',8.2,'heavy',UI.accent,1);
   spacer(heroCard,5);
   txtLarge(heroCard,compact(displayPlayerName(data.hero?.name),10),11.2,'bold','#FFFFFF',1);
   spacer(heroCard,4);
-  txtLarge(heroCard,data.hero?.rating?.toFixed(1)??'—',11.2,'heavy','#F3C75B',1);
+  txtLarge(heroCard,data.hero?.rating?.toFixed(1)??'—',11.2,'heavy',UI.accent,1);
 
   root.addSpacer();
 
@@ -1105,9 +1133,11 @@ function buildLarge(data,images){
   footer.centerAlignContent();
   footer.setPadding(7,9,7,9);
   footer.cornerRadius=11;
-  footer.backgroundColor=C('#07101C',.92);
+  footer.backgroundColor=C(UI.panelDark,.98);
+  footer.borderWidth=1;
+  footer.borderColor=C(UI.borderSoft,.70);
 
-  txtLarge(footer,'次戦',10.4,'heavy','#F3C75B',1);
+  txtLarge(footer,'次戦',10.4,'heavy',UI.accent,1);
   spacer(footer,8);
 
   if(data.next){
