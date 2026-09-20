@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.16
+// Club Pulse Hero Prototype v0.17
 // Real Madrid post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -562,12 +562,7 @@ function makeLargeBackground(){
   ctx.opaque=true;
   ctx.respectScreenScale=false;
 
-  const g=new LinearGradient();
-  g.startPoint=new Point(0,0);
-  g.endPoint=new Point(1,1);
-  g.colors=[C('#05070C'),C('#080B12'),C('#05070C')];
-  g.locations=[0,.55,1];
-  ctx.setFillGradient(g);
+  ctx.setFillColor(C('#060910'));
   ctx.fillRect(new Rect(0,0,W,H));
 
   return ctx.getImage();
@@ -580,12 +575,7 @@ function makeHeroPanel(hero){
   ctx.opaque=true;
   ctx.respectScreenScale=false;
 
-  const g=new LinearGradient();
-  g.startPoint=new Point(0,0);
-  g.endPoint=new Point(0,1);
-  g.colors=[C('#111725'),C('#070A10')];
-  g.locations=[0,1];
-  ctx.setFillGradient(g);
+  ctx.setFillColor(C('#0D1320'));
   ctx.fillRect(new Rect(0,0,W,H));
 
   if(hero){
@@ -597,13 +587,9 @@ function makeHeroPanel(hero){
     ctx.drawImageInRect(hero,new Rect(x,y,dw,dh));
   }
 
-  const shade=new LinearGradient();
-  shade.startPoint=new Point(0,0);
-  shade.endPoint=new Point(0,1);
-  shade.colors=[C('#000000',0),C('#02050A',.22)];
-  shade.locations=[0,.95];
-  ctx.setFillGradient(shade);
-  ctx.fillRect(new Rect(0,0,W,H));
+  // subtle bottom shade without unsupported DrawContext gradients
+  ctx.setFillColor(C('#02050A',.18));
+  ctx.fillRect(new Rect(0,H-24,W,24));
 
   return ctx.getImage();
 }
