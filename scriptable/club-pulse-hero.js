@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.32
+// Club Pulse Hero Prototype v0.33
 // Real Madrid post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -1185,6 +1185,91 @@ function errorWidget(message){
   return w;
 }
 
+function cloneQaData(data){
+  return JSON.parse(JSON.stringify(data));
+}
+
+function applyQaScenario(data,scenario){
+  const d=cloneQaData(data);
+  const key=String(scenario||'normal').toLowerCase();
+
+  if(key==='loss'){
+    d.fixture.ours=1;
+    d.fixture.theirs=3;
+    d.fixture.result='LOSS';
+    d.goals=(d.goals||[]).slice(0,1);
+    if(Array.isArray(d.form)&&d.form.length) d.form[0]='L';
+  }
+
+  if(key==='draw'){
+    d.fixture.ours=1;
+    d.fixture.theirs=1;
+    d.fixture.result='DRAW';
+    d.goals=(d.goals||[]).slice(0,1);
+    if(Array.isArray(d.form)&&d.form.length) d.form[0]='D';
+  }
+
+  if(key==='zero'){
+    d.fixture.ours=0;
+    d.fixture.theirs=2;
+    d.fixture.result='LOSS';
+    d.goals=[];
+    if(Array.isArray(d.form)&&d.form.length) d.form[0]='L';
+  }
+
+  if(key==='noassist'){
+    d.goals=(d.goals||[]).map(g=>({...g,assist:null}));
+  }
+
+  if(key==='hero2' && Array.isArray(d.top3) && d.top3[1]){
+    d.hero={...d.top3[1]};
+  }
+
+  if(key==='long'){
+    d.fixture.opponent='アトレティコ・デ・サン・ロレンツォ';
+    if(d.next) d.next.opponent='アトレティコ・デ・サン・ロレンツォ';
+    if(Array.isArray(d.top3) && d.top3[0]){
+      d.top3[0].name='Alexander-Arnold-Superlongname';
+      d.hero={...d.top3[0]};
+    }
+    if(Array.isArray(d.goals) && d.goals[0]){
+      d.goals[0].scorer='Alexander-Arnold-Superlongname';
+      d.goals[0].assist='VeryLongAssistPlayerSurname';
+    }
+  }
+
+  if(key==='nonext'){
+    d.next=null;
+  }
+
+  return d;
+}
+
+async function chooseQaScenario(){
+  if(!config.runsInApp) return 'normal';
+
+  const raw=String(args.widgetParameter||'').toLowerCase();
+  const tokens=['loss','draw','zero','noassist','hero2','long','nonext'];
+  for(const t of tokens){
+    if(raw.includes(t)) return t;
+  }
+
+  const a=new Alert();
+  a.title='Club Pulse Hero QA';
+  a.message='確認する状態を選択';
+  a.addAction('通常');
+  a.addAction('敗戦 1-3');
+  a.addAction('引き分け 1-1');
+  a.addAction('0得点');
+  a.addAction('アシストなし');
+  a.addAction('Hero変更');
+  a.addAction('長い名前');
+  a.addAction('次戦なし');
+
+  const i=await a.presentSheet();
+  return ['normal','loss','draw','zero','noassist','hero2','long','nonext'][Math.max(0,i)] || 'normal';
+}
+
 async function choosePreviewFamily(){
   if(!config.runsInApp) return null;
 
@@ -1205,15 +1290,23 @@ async function choosePreviewFamily(){
 }
 
 let previewFamily=null;
+let qaScenario='normal';
 let widget;
 try{
   const force=config.runsInApp;
-  const data=normalizeDisplayData(await fetchData(force));
+  let data=normalizeDisplayData(await fetchData(force));
+
+  previewFamily=await choosePreviewFamily();
+  qaScenario=await chooseQaScenario();
+
+  if(config.runsInApp){
+    data=applyQaScenario(data,qaScenario);
+  }
+
   const [hero,crest]=await Promise.all([
     cachedImage(data.hero?.photo,'hero_'+(data.hero?.id||'none')),
     cachedImage(data.team?.logo,'crest_'+CP.teamId)
   ]);
-  previewFamily=await choosePreviewFamily();
 
   const family=config.runsInWidget
     ? (config.widgetFamily||'medium')
