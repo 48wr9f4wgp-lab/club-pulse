@@ -53,8 +53,21 @@ async function api(path, token) {
   req.timeoutInterval = 15;
   const json = await req.loadJSON();
   const status = req.response?.statusCode || 200;
-  if (status >= 400 || (json?.errors && Object.keys(json.errors).length)) {
-    throw new Error(`API-Football ${status}`);
+
+  const errors = json?.errors;
+  const hasErrors =
+    Array.isArray(errors) ? errors.length > 0 :
+    errors && typeof errors === 'object' ? Object.keys(errors).length > 0 :
+    Boolean(errors);
+
+  if (status >= 400 || hasErrors) {
+    let detail = '';
+    try {
+      detail = typeof errors === 'string' ? errors : JSON.stringify(errors);
+    } catch (_) {
+      detail = String(errors || '');
+    }
+    throw new Error(`API-Football ${status}${detail ? ' · ' + detail : ''}`);
   }
   return json;
 }
