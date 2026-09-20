@@ -176,8 +176,12 @@ async function fetchHeroData(token, force = false) {
     const toDate = new Date(now.getTime() + 60 * 86400000);
     const ymd = d => d.toISOString().slice(0, 10);
 
+    // API-Football requires an explicit season for this fixture query.
+    // European seasons are keyed by their starting year.
+    const season = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1;
+
     const fixturesJ = await api(
-      `/fixtures?team=${team.id}&from=${ymd(fromDate)}&to=${ymd(toDate)}&timezone=Asia%2FTokyo`,
+      `/fixtures?team=${team.id}&season=${season}&from=${ymd(fromDate)}&to=${ymd(toDate)}&timezone=Asia%2FTokyo`,
       token
     );
     const fixtures = (fixturesJ?.response || []).filter(isOfficial);
