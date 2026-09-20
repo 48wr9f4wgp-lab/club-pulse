@@ -511,11 +511,11 @@ function makeLargeBackground(hero){
 
   if(hero){
     const iw=hero.size.width||1, ih=hero.size.height||1;
-    const targetW=390, targetH=560;
+    const targetW=405, targetH=575;
     const scale=Math.min(targetW/iw,targetH/ih);
     const dw=iw*scale, dh=ih*scale;
-    const x=W-dw+18;
-    const y=150+(410-dh)/2;
+    const x=W-dw+42;
+    const y=182+(395-dh)/2;
     ctx.drawImageInRect(hero,new Rect(x,y,dw,dh));
   }
 
@@ -607,20 +607,20 @@ function buildLarge(data,images){
 
   spacer(info,12);
   const divider=info.addStack();
-  divider.size=new Size(1,88);
-  divider.backgroundColor=C('#FFFFFF',.15);
+  divider.size=new Size(1,92);
+  divider.backgroundColor=C('#FFFFFF',.07);
   spacer(info,12);
 
   const contrib=info.addStack();
   contrib.layoutVertically();
-  contrib.size=new Size(145,0);
-  txt(contrib,'⚽ GOALS',7.2,'bold','#FFFFFF',.88);
+  contrib.size=new Size(162,0);
+  txt(contrib,'⚽ GOALS',8.2,'bold','#FFFFFF',.92);
   const gl=goalLines(data);
-  (gl.length?gl:['—']).forEach(x=>txt(contrib,compact(x,19),8.2,'semibold','#FFFFFF',gl.length?.96:.55));
-  spacer(contrib,5);
-  txt(contrib,'🎯 ASSISTS',7.2,'bold','#FFFFFF',.88);
+  (gl.length?gl:['—']).forEach(x=>txt(contrib,compact(x,20),9.3,'semibold','#FFFFFF',gl.length?.98:.55));
+  spacer(contrib,6);
+  txt(contrib,'🎯 ASSISTS',8.2,'bold','#FFFFFF',.92);
   const al=assistLines(data);
-  (al.length?al:['—']).forEach(x=>txt(contrib,compact(x,19),8.2,'semibold','#FFFFFF',al.length?.96:.55));
+  (al.length?al:['—']).forEach(x=>txt(contrib,compact(x,20),9.3,'semibold','#FFFFFF',al.length?.98:.55));
 
   root.addSpacer();
 
