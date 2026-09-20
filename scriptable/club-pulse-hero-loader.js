@@ -1,8 +1,8 @@
 // Club Pulse Hero Loader v0.2
-// Install once in Scriptable. Runtime is always pulled from GitHub main.
+// Install once in Scriptable. Runtime is always pulled from the dedicated hero-prototype branch.
 
 const REMOTE =
-  'https://api.github.com/repos/48wr9f4wgp-lab/club-pulse/contents/scriptable/club-pulse-hero.js?ref=main';
+  'https://api.github.com/repos/48wr9f4wgp-lab/club-pulse/contents/scriptable/club-pulse-hero.js?ref=hero-prototype';
 
 const fm = FileManager.local();
 const cachePath = fm.joinPath(
