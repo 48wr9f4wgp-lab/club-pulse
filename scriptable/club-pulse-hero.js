@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.7
+// Club Pulse Hero Prototype v0.8
 // Real Madrid post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -111,7 +111,7 @@ function resultOf(sc){
 function compName(m){
   const n = String(m?.league?.name || m?.tournament?.name || '');
   const l=n.toLowerCase();
-  if(l.includes('laliga') || l.includes('la liga')) return 'ラ・リーガ';
+  if(l.includes('laliga') || l.includes('la liga') || n==='ラ・リーガ') return 'ラ・リーガ';
   if(l.includes('champions')) return 'CL';
   if(l.includes('copa del rey')) return '国王杯';
   if(l.includes('super')) return 'SUPER';
@@ -146,6 +146,22 @@ function jpTeamName(name){
     'Osasuna':'オサスナ'
   };
   return map[n]||n||'—';
+}
+
+function normalizeDisplayData(data){
+  if(!data||typeof data!=='object') return data;
+  const out={...data};
+  if(out.fixture){
+    out.fixture={...out.fixture};
+    out.fixture.opponent=jpTeamName(out.fixture.opponent);
+    out.fixture.competition=compName({league:{name:out.fixture.competition}});
+  }
+  if(out.next){
+    out.next={...out.next};
+    out.next.opponent=jpTeamName(out.next.opponent);
+    out.next.competition=compName({league:{name:out.next.competition}});
+  }
+  return out;
 }
 
 function fmtDate(value, withTime=false){
@@ -553,7 +569,7 @@ function makeLargeBackground(hero){
     const targetW=203, targetH=288;
     const scale=Math.min(targetW/iw,targetH/ih);
     const dw=iw*scale, dh=ih*scale;
-    const x=W-dw+25;
+    const x=W-dw+34;
     const y=96+(198-dh)/2;
     ctx.drawImageInRect(hero,new Rect(x,y,dw,dh));
   }
@@ -568,22 +584,23 @@ function formChip(parent,value){
   p.setPadding(3,7,3,7);
   p.cornerRadius=7;
   const m={
-    W:['#173A26','#63E283'],
-    D:['#343842','#D7DAE1'],
-    L:['#451B21','#FF7B83']
-  }[value]||['#272B33','#9EA4AF'];
+    W:['#173A26','#63E283','勝'],
+    D:['#343842','#D7DAE1','分'],
+    L:['#451B21','#FF7B83','敗']
+  }[value]||['#272B33','#9EA4AF','—'];
   p.backgroundColor=C(m[0],.94);
-  txt(p,value,7.5,'heavy',m[1]);
+  txt(p,m[2],7.5,'heavy',m[1]);
 }
 
 function buildLarge(data,images){
   const w=new ListWidget();
-  w.setPadding(0,0,0,0);
+  w.setPadding(10,12,10,12);
   w.backgroundImage=makeLargeBackground(images.hero);
 
   const root=w.addStack();
   root.layoutVertically();
-  root.setPadding(14,14,12,14);
+  root.setPadding(0,0,0,0);
+  root.topAlignContent();
 
   const overlay=new LinearGradient();
   overlay.startPoint=new Point(0,0.5);
@@ -611,7 +628,7 @@ function buildLarge(data,images){
   h.addSpacer();
   resultChip(h,data.fixture.result);
 
-  spacer(root,10);
+  spacer(root,7);
 
   const score=root.addStack();
   score.layoutHorizontally();
@@ -623,7 +640,7 @@ function buildLarge(data,images){
   score.addSpacer();
   txt(score,String(data.fixture.ours)+' - '+String(data.fixture.theirs),31,'heavy');
 
-  spacer(root,10);
+  spacer(root,7);
 
   const info=root.addStack();
   info.layoutHorizontally();
@@ -735,7 +752,7 @@ function errorWidget(message){
 let widget;
 try{
   const force=config.runsInApp;
-  const data=await fetchData(force);
+  const data=normalizeDisplayData(await fetchData(force));
   const [hero,crest]=await Promise.all([
     cachedImage(data.hero?.photo,'hero_'+(data.hero?.id||'none')),
     cachedImage(data.team?.logo,'crest_'+CP.teamId)
