@@ -168,18 +168,28 @@ async function fetchHeroData(token, force = false) {
 
   try {
     const team = await resolveTeam(token);
-    const [lastJ, nextJ] = await Promise.all([
-      api(`/fixtures?team=${team.id}&last=10`, token),
-      api(`/fixtures?team=${team.id}&next=10`, token),
-    ]);
 
-    const latest = (lastJ?.response || [])
-      .filter(x => isOfficial(x) && isFinished(x))
+    // Free API-Football plans may reject the `next` / `last` parameters.
+    // Fetch one bounded date window instead and select previous/next locally.
+    const now = new Date();
+    const fromDate = new Date(now.getTime() - 45 * 86400000);
+    const toDate = new Date(now.getTime() + 60 * 86400000);
+    const ymd = d => d.toISOString().slice(0, 10);
+
+    const fixturesJ = await api(
+      `/fixtures?team=${team.id}&from=${ymd(fromDate)}&to=${ymd(toDate)}&timezone=Asia%2FTokyo`,
+      token
+    );
+    const fixtures = (fixturesJ?.response || []).filter(isOfficial);
+
+    const latest = fixtures
+      .filter(isFinished)
       .sort((a, b) => new Date(b.fixture.date) - new Date(a.fixture.date))[0];
     if (!latest?.fixture?.id) throw new Error('Latest finished fixture not found');
 
-    const next = (nextJ?.response || [])
-      .filter(x => isOfficial(x) && isUpcoming(x))
+    const next = fixtures
+      .filter(isUpcoming)
+      .filter(x => new Date(x?.fixture?.date || 0).getTime() > Date.now() - 5 * 60 * 1000)
       .sort((a, b) => new Date(a.fixture.date) - new Date(b.fixture.date))[0] || null;
 
     const [playersJ, eventsJ] = await Promise.all([
