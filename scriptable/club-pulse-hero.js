@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.17
+// Club Pulse Hero Prototype v0.18
 // Real Madrid post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -569,7 +569,7 @@ function makeLargeBackground(){
 }
 
 function makeHeroPanel(hero){
-  const W=118,H=142;
+  const W=146,H=176;
   const ctx=new DrawContext();
   ctx.size=new Size(W,H);
   ctx.opaque=true;
@@ -610,13 +610,13 @@ function formChip(parent,value){
 function contributionBlock(parent,title,lines){
   const box=parent.addStack();
   box.layoutVertically();
-  box.setPadding(6,8,6,8);
-  box.cornerRadius=9;
+  box.setPadding(8,10,8,10);
+  box.cornerRadius=10;
   box.backgroundColor=C('#0A0E16',.90);
-  txt(box,title,8.4,'bold','#FFFFFF',.98);
+  txt(box,title,9.4,'bold','#FFFFFF',1);
   spacer(box,2);
   (lines.length?lines:['—']).forEach(x=>{
-    txt(box,compact(x,20),9.2,'semibold','#FFFFFF',lines.length?1:.55);
+    txt(box,compact(x,22),10.4,'semibold','#FFFFFF',lines.length?1:.58);
   });
   return box;
 }
@@ -667,7 +667,7 @@ function buildLarge(data,images){
   // Left: all match information. No portrait can enter this column.
   const left=main.addStack();
   left.layoutVertically();
-  left.size=new Size(190,0);
+  left.size=new Size(202,0);
 
   txt(left,'★ 評価TOP3',8.3,'bold','#F3C75B');
   spacer(left,4);
@@ -694,21 +694,21 @@ function buildLarge(data,images){
   const al=assistLines(data);
   contributionBlock(left,'🎯 アシスト',al);
 
-  main.addSpacer(12);
+  main.addSpacer(8);
 
   // Right: dedicated Hero panel. Nothing else overlays this image.
   const right=main.addStack();
   right.layoutVertically();
-  right.size=new Size(118,0);
+  right.size=new Size(146,0);
   right.centerAlignContent();
 
   if(images.hero){
     const hi=right.addImage(makeHeroPanel(images.hero));
-    hi.imageSize=new Size(118,142);
-    hi.cornerRadius=13;
+    hi.imageSize=new Size(146,176);
+    hi.cornerRadius=14;
   }else{
     const placeholder=right.addStack();
-    placeholder.size=new Size(118,142);
+    placeholder.size=new Size(146,176);
     placeholder.cornerRadius=13;
     placeholder.backgroundColor=C('#111725');
     placeholder.centerAlignContent();
@@ -720,14 +720,14 @@ function buildLarge(data,images){
   const heroCard=right.addStack();
   heroCard.layoutHorizontally();
   heroCard.centerAlignContent();
-  heroCard.setPadding(6,8,6,8);
+  heroCard.setPadding(7,10,7,10);
   heroCard.cornerRadius=11;
   heroCard.backgroundColor=C('#0A0F18',.92);
-  txt(heroCard,'MVP',6.5,'heavy','#F3C75B');
+  txt(heroCard,'MVP',7.1,'heavy','#F3C75B');
   spacer(heroCard,5);
-  txt(heroCard,compact(displayPlayerName(data.hero?.name),11),9.1,'bold','#FFFFFF');
+  txt(heroCard,compact(displayPlayerName(data.hero?.name),12),10.0,'bold','#FFFFFF');
   spacer(heroCard,4);
-  txt(heroCard,data.hero?.rating?.toFixed(1)??'—',9.1,'heavy','#F3C75B');
+  txt(heroCard,data.hero?.rating?.toFixed(1)??'—',10.0,'heavy','#F3C75B');
 
   root.addSpacer();
 
