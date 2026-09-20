@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.31
+// Club Pulse Hero Prototype v0.32
 // Real Madrid post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -901,7 +901,7 @@ function makeLargeBackground(){
 }
 
 function makeHeroPanel(hero){
-  const W=128,H=128;
+  const W=132,H=132;
   const ctx=new DrawContext();
   ctx.size=new Size(W,H);
   ctx.opaque=true;
@@ -1020,8 +1020,9 @@ function buildLarge(data,images){
   left.layoutVertically();
   left.size=new Size(190,168);
 
+  spacer(left,2);
   txtLarge(left,'★ 評価TOP3',11.7,'bold',UI.accent,1);
-  spacer(left,4);
+  spacer(left,3);
 
   data.top3.forEach((p,i)=>{
     const r=left.addStack();
@@ -1054,20 +1055,20 @@ function buildLarge(data,images){
     spacer(left,2);
   });
 
-  spacer(left,8);
+  spacer(left,7);
 
   const gl=goalLines(data);
-  txtLarge(left,'⚽ 得点',11.5,'bold',UI.text,1);
+  txtLarge(left,'⚽ 得点',11.5,'bold',UI.accent,1);
   spacer(left,3);
   (gl.length?gl:['—']).forEach(x=>{
     txtLarge(left,compact(x,18),12.6,'semibold',UI.text,gl.length?1:.72);
     spacer(left,1);
   });
 
-  spacer(left,7);
+  spacer(left,6);
 
   const al=assistLines(data);
-  txtLarge(left,'🎯 アシスト',11.5,'bold',UI.text,1);
+  txtLarge(left,'🎯 アシスト',11.5,'bold',UI.accent,1);
   spacer(left,3);
   (al.length?al:['—']).forEach(x=>{
     txtLarge(left,compact(x,18),12.6,'semibold',UI.text,al.length?1:.72);
@@ -1084,14 +1085,14 @@ function buildLarge(data,images){
 
   if(images.hero){
     const heroFrame=right.addStack();
-    heroFrame.setPadding(3,3,3,3);
+    heroFrame.setPadding(2,2,2,2);
     heroFrame.cornerRadius=14;
     heroFrame.backgroundColor=C(UI.hero,.99);
     heroFrame.borderWidth=1;
     heroFrame.borderColor=C(UI.border,.88);
 
     const hi=heroFrame.addImage(makeHeroPanel(images.hero));
-    hi.imageSize=new Size(128,128);
+    hi.imageSize=new Size(132,132);
     hi.cornerRadius=11;
   }else{
     const placeholder=right.addStack();
@@ -1139,7 +1140,7 @@ function buildLarge(data,images){
     txtLarge(form,'—',10,'medium','#FFFFFF',.75);
   }
 
-  spacer(root,7);
+  spacer(root,5);
 
   // NEXT
   const footer=root.addStack();
