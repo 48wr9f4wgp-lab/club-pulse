@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.2
+// Club Pulse Hero Prototype v0.3
 // Real Madrid post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -316,6 +316,7 @@ async function fetchData(force=false){
       top3:top3.map(p=>({...p,photo:imgPlayer(p.id)})),
       hero:{...top3[0],photo:imgPlayer(top3[0].id)},
       goals,
+      form:recentForm(team),
       next:next?{
         id:next.id,
         date:fixtureTime(next),
@@ -394,10 +395,32 @@ function goalLines(data){
   for(const g of data.goals||[]) counts[g.scorer]=(counts[g.scorer]||0)+1;
   return Object.entries(counts).slice(0,3).map(([n,c])=>n+(c>1?' ×'+c:''));
 }
+function cleanAssistName(name){
+  return String(name||'')
+    .replace(/^assist(?:ed)?\s+by\s+/i,'')
+    .replace(/^by\s+/i,'')
+    .trim();
+}
+
 function assistLines(data){
   const a=[];
-  for(const g of data.goals||[]) if(g.assist&&!a.includes(g.assist)) a.push(g.assist);
+  for(const g of data.goals||[]){
+    const n=cleanAssistName(g.assist);
+    if(n&&!a.includes(n))a.push(n);
+  }
   return a.slice(0,3);
+}
+
+function recentForm(team){
+  return allFixtures(team)
+    .filter(x=>finished(x)&&!cancelled(x))
+    .sort((a,b)=>new Date(fixtureTime(b)||0)-new Date(fixtureTime(a)||0))
+    .slice(0,5)
+    .map(m=>{
+      const s=scoreFromFixture(m);
+      if(!Number.isFinite(s.ours)||!Number.isFinite(s.theirs))return 'D';
+      return s.ours>s.theirs?'W':s.ours<s.theirs?'L':'D';
+    });
 }
 
 function buildMedium(data,images){
@@ -476,6 +499,186 @@ function buildMedium(data,images){
   return w;
 }
 
+
+function makeLargeBackground(hero){
+  const W=720,H=720;
+  const ctx=new DrawContext();
+  ctx.size=new Size(W,H);
+  ctx.opaque=true;
+  ctx.respectScreenScale=true;
+  ctx.setFillColor(C('#05070C'));
+  ctx.fillRect(new Rect(0,0,W,H));
+
+  if(hero){
+    const iw=hero.size.width||1, ih=hero.size.height||1;
+    const targetW=390, targetH=560;
+    const scale=Math.min(targetW/iw,targetH/ih);
+    const dw=iw*scale, dh=ih*scale;
+    const x=W-dw+18;
+    const y=150+(410-dh)/2;
+    ctx.drawImageInRect(hero,new Rect(x,y,dw,dh));
+  }
+
+  ctx.setFillColor(C('#02050A',.10));
+  ctx.fillRect(new Rect(0,0,W,H));
+  return ctx.getImage();
+}
+
+function formChip(parent,value){
+  const p=parent.addStack();
+  p.setPadding(3,7,3,7);
+  p.cornerRadius=7;
+  const m={
+    W:['#173A26','#63E283'],
+    D:['#343842','#D7DAE1'],
+    L:['#451B21','#FF7B83']
+  }[value]||['#272B33','#9EA4AF'];
+  p.backgroundColor=C(m[0],.94);
+  txt(p,value,7.5,'heavy',m[1]);
+}
+
+function buildLarge(data,images){
+  const w=new ListWidget();
+  w.setPadding(0,0,0,0);
+  w.backgroundImage=makeLargeBackground(images.hero);
+
+  const root=w.addStack();
+  root.layoutVertically();
+  root.setPadding(14,14,12,14);
+
+  const overlay=new LinearGradient();
+  overlay.startPoint=new Point(0,0.5);
+  overlay.endPoint=new Point(1,0.5);
+  overlay.colors=[
+    C('#02050A',.97),
+    C('#02050A',.90),
+    C('#02050A',.55),
+    C('#02050A',.12)
+  ];
+  overlay.locations=[0,.42,.72,1];
+  root.backgroundGradient=overlay;
+
+  const h=root.addStack();
+  h.layoutHorizontally();
+  h.centerAlignContent();
+  if(images.crest){
+    const im=h.addImage(images.crest);
+    im.imageSize=new Size(26,26);
+  }
+  spacer(h,7);
+  txt(h,CP.clubName,13,'heavy');
+  spacer(h,7);
+  txt(h,data.fixture.competition,7.5,'semibold','#D9DDE6',.82);
+  h.addSpacer();
+  resultChip(h,data.fixture.result);
+
+  spacer(root,10);
+
+  const score=root.addStack();
+  score.layoutHorizontally();
+  score.centerAlignContent();
+  const sl=score.addStack();
+  sl.layoutVertically();
+  txt(sl,compact(data.fixture.opponent,22),10,'semibold','#F0F2F6',.96);
+  txt(sl,(data.fixture.home?'HOME':'AWAY')+' · '+fmtDate(data.fixture.date),7,'medium','#BBC2CF',.74);
+  score.addSpacer();
+  txt(score,String(data.fixture.ours)+' - '+String(data.fixture.theirs),31,'heavy');
+
+  spacer(root,10);
+
+  const info=root.addStack();
+  info.layoutHorizontally();
+
+  const ratings=info.addStack();
+  ratings.layoutVertically();
+  ratings.size=new Size(182,0);
+  txt(ratings,'★ TOP RATED',7.2,'bold','#F3C75B');
+  spacer(ratings,3);
+  data.top3.forEach((p,i)=>{
+    const r=ratings.addStack();
+    r.layoutHorizontally();
+    txt(r,String(i+1),7.5,'heavy',i===0?'#F3C75B':'#C4CAD4');
+    spacer(r,7);
+    txt(r,compact(displayPlayerName(p.name),15),9,i===0?'bold':'semibold','#FFFFFF',i===0?1:.90);
+    r.addSpacer();
+    txt(r,p.rating.toFixed(1),8.8,'heavy',i===0?'#F3C75B':'#FFFFFF',i===0?1:.88);
+    spacer(ratings,2);
+  });
+
+  spacer(info,12);
+  const divider=info.addStack();
+  divider.size=new Size(1,88);
+  divider.backgroundColor=C('#FFFFFF',.15);
+  spacer(info,12);
+
+  const contrib=info.addStack();
+  contrib.layoutVertically();
+  contrib.size=new Size(145,0);
+  txt(contrib,'⚽ GOALS',7.2,'bold','#FFFFFF',.88);
+  const gl=goalLines(data);
+  (gl.length?gl:['—']).forEach(x=>txt(contrib,compact(x,19),8.2,'semibold','#FFFFFF',gl.length?.96:.55));
+  spacer(contrib,5);
+  txt(contrib,'🎯 ASSISTS',7.2,'bold','#FFFFFF',.88);
+  const al=assistLines(data);
+  (al.length?al:['—']).forEach(x=>txt(contrib,compact(x,19),8.2,'semibold','#FFFFFF',al.length?.96:.55));
+
+  root.addSpacer();
+
+  const heroRow=root.addStack();
+  heroRow.layoutHorizontally();
+  heroRow.addSpacer();
+  const heroCard=heroRow.addStack();
+  heroCard.layoutVertically();
+  heroCard.setPadding(5,9,5,9);
+  heroCard.cornerRadius=10;
+  heroCard.backgroundColor=C('#07101C',.50);
+  const tag=heroCard.addStack();
+  tag.layoutHorizontally();
+  txt(tag,'MVP',6.5,'heavy','#F3C75B');
+  spacer(tag,6);
+  txt(tag,compact(displayPlayerName(data.hero?.name),15),9.4,'bold');
+  spacer(tag,5);
+  txt(tag,data.hero?.rating?.toFixed(1)??'—',9.4,'heavy','#F3C75B');
+
+  spacer(root,10);
+
+  const form=root.addStack();
+  form.layoutHorizontally();
+  form.centerAlignContent();
+  txt(form,'RECENT',6.4,'heavy','#AEB5C0',.75);
+  spacer(form,7);
+  const ff=(data.form||[]).slice(0,5);
+  if(ff.length){
+    ff.forEach((x,i)=>{
+      formChip(form,x);
+      if(i<ff.length-1)spacer(form,4);
+    });
+  }else{
+    txt(form,'—',8,'medium','#AEB5C0',.65);
+  }
+
+  spacer(root,7);
+
+  const f=root.addStack();
+  f.layoutHorizontally();
+  f.centerAlignContent();
+  f.setPadding(5,8,5,8);
+  f.cornerRadius=10;
+  f.backgroundColor=C('#07101C',.66);
+  txt(f,'NEXT',6.8,'heavy','#F3C75B');
+  spacer(f,8);
+  if(data.next){
+    txt(f,'vs '+compact(data.next.opponent,21),8.8,'semibold');
+    f.addSpacer();
+    txt(f,fmtDate(data.next.date,true)+' · '+data.next.competition,7,'medium','#D2D7E1',.82);
+  }else{
+    txt(f,'次戦データなし',8,'medium','#D2D7E1',.78);
+  }
+
+  w.refreshAfterDate=new Date(Date.now()+CP.refreshMs);
+  return w;
+}
+
 function errorWidget(message){
   const w=new ListWidget();
   w.backgroundColor=C('#070A10');
@@ -495,11 +698,21 @@ try{
     cachedImage(data.hero?.photo,'hero_'+(data.hero?.id||'none')),
     cachedImage(data.team?.logo,'crest_'+CP.teamId)
   ]);
-  widget=buildMedium(data,{hero,crest});
+  const requested=String(args.widgetParameter||'').toLowerCase();
+  const family=config.runsInWidget
+    ? (config.widgetFamily||'medium')
+    : (requested.includes('medium')?'medium':'large');
+  widget=(family==='large'||family==='extraLarge')
+    ? buildLarge(data,{hero,crest})
+    : buildMedium(data,{hero,crest});
 }catch(e){
   widget=errorWidget('データ取得失敗\n'+String(e));
 }
 
 Script.setWidget(widget);
-if(config.runsInApp) await widget.presentMedium();
+if(config.runsInApp){
+  const requested=String(args.widgetParameter||'').toLowerCase();
+  if(requested.includes('medium'))await widget.presentMedium();
+  else await widget.presentLarge();
+}
 Script.complete();
