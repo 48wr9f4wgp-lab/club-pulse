@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.22
+// Club Pulse Hero Prototype v0.23
 // Real Madrid post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -717,21 +717,24 @@ function buildMedium(data,images){
   const left=body.addStack();
   left.layoutVertically();
   left.size=new Size(226,0);
+  left.setPadding(7,9,7,9);
+  left.cornerRadius=11;
+  left.backgroundColor=C('#0A0F18',.94);
 
-  txtMedium(left,'★ 評価TOP3',8.8,'bold','#F3C75B',1);
-  spacer(left,2);
+  txtMedium(left,'★ 評価TOP3',9.2,'bold','#F3C75B',1);
+  spacer(left,3);
 
   data.top3.forEach((p,i)=>{
     const r=left.addStack();
     r.layoutHorizontally();
     r.centerAlignContent();
 
-    txtMedium(r,String(i+1),8.4,'heavy',i===0?'#F3C75B':'#FFFFFF',1);
+    txtMedium(r,String(i+1),8.7,'heavy',i===0?'#F3C75B':'#FFFFFF',1);
     spacer(r,6);
     txtMedium(
       r,
       compact(displayPlayerName(p.name),14),
-      10.1,
+      10.5,
       i===0?'bold':'semibold',
       '#FFFFFF',
       1
@@ -740,7 +743,7 @@ function buildMedium(data,images){
     txtMedium(
       r,
       p.rating.toFixed(1),
-      9.8,
+      10.2,
       'heavy',
       i===0?'#F3C75B':'#FFFFFF',
       1
@@ -748,24 +751,24 @@ function buildMedium(data,images){
     spacer(left,1);
   });
 
-  spacer(left,4);
+  spacer(left,5);
 
   const gl=goalLines(data).map(x=>displayPlayerName(x));
   const al=assistLines(data).map(x=>displayPlayerName(x));
 
   txtMedium(
     left,
-    '⚽ '+(gl.length?gl.join(' / '):'—'),
-    8.9,
+    '⚽ 得点  '+(gl.length?gl.join(' / '):'—'),
+    9.2,
     'semibold',
     '#FFFFFF',
     1
   );
-  spacer(left,1);
+  spacer(left,3);
   txtMedium(
     left,
-    '🎯 '+(al.length?al.join(' / '):'—'),
-    8.9,
+    '🎯 アシスト  '+(al.length?al.join(' / '):'—'),
+    9.2,
     'semibold',
     '#FFFFFF',
     1
