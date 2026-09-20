@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.24
+// Club Pulse Hero Prototype v0.25
 // Real Madrid post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -1123,6 +1123,26 @@ function errorWidget(message){
   return w;
 }
 
+async function choosePreviewFamily(){
+  if(!config.runsInApp) return null;
+
+  const raw=String(args.widgetParameter||'').toLowerCase();
+  if(raw.includes('small')) return 'small';
+  if(raw.includes('medium')) return 'medium';
+  if(raw.includes('large')) return 'large';
+
+  const a=new Alert();
+  a.title='Club Pulse Hero QA';
+  a.message='確認するWidgetサイズを選択';
+  a.addAction('Small');
+  a.addAction('Medium');
+  a.addAction('Large');
+
+  const i=await a.presentSheet();
+  return ['small','medium','large'][Math.max(0,i)] || 'medium';
+}
+
+let previewFamily=null;
 let widget;
 try{
   const force=config.runsInApp;
@@ -1131,14 +1151,11 @@ try{
     cachedImage(data.hero?.photo,'hero_'+(data.hero?.id||'none')),
     cachedImage(data.team?.logo,'crest_'+CP.teamId)
   ]);
-  const requested=String(args.widgetParameter||'').toLowerCase();
+  previewFamily=await choosePreviewFamily();
+
   const family=config.runsInWidget
     ? (config.widgetFamily||'medium')
-    : requested.includes('small')
-      ? 'small'
-      : requested.includes('medium')
-        ? 'medium'
-        : 'large';
+    : (previewFamily||'medium');
 
   widget=family==='small'
     ? buildSmall(data,{hero,crest})
@@ -1151,9 +1168,8 @@ try{
 
 Script.setWidget(widget);
 if(config.runsInApp){
-  const requested=String(args.widgetParameter||'').toLowerCase();
-  if(requested.includes('small'))await widget.presentSmall();
-  else if(requested.includes('medium'))await widget.presentMedium();
-  else await widget.presentLarge();
+  if(previewFamily==='small') await widget.presentSmall();
+  else if(previewFamily==='large') await widget.presentLarge();
+  else await widget.presentMedium();
 }
 Script.complete();
