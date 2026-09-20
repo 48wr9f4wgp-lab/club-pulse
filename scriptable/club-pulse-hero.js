@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.26
+// Club Pulse Hero Prototype v0.27
 // Real Madrid post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -480,7 +480,7 @@ function recentForm(team){
 }
 
 function makeSmallHeroPanel(hero){
-  const W=66,H=78;
+  const W=72,H=84;
   const ctx=new DrawContext();
   ctx.size=new Size(W,H);
   ctx.opaque=true;
@@ -588,9 +588,9 @@ function buildSmall(data,images){
     .98
   );
 
-  left.addSpacer();
+  left.addSpacer(4);
 
-  txtSmall(left,'MVP',6.7,'heavy','#F3C75B',1);
+  txtSmall(left,'MVP',6.9,'heavy','#F3C75B',1);
   spacer(left,1);
 
   const mvp=left.addStack();
@@ -598,7 +598,7 @@ function buildSmall(data,images){
   txtSmall(
     mvp,
     compact(displayPlayerName(data.hero?.name),9),
-    8.7,
+    9.0,
     'bold',
     '#FFFFFF',
     1
@@ -607,7 +607,7 @@ function buildSmall(data,images){
   txtSmall(
     mvp,
     data.hero?.rating?.toFixed(1)??'—',
-    8.7,
+    9.0,
     'heavy',
     '#F3C75B',
     1
@@ -621,11 +621,11 @@ function buildSmall(data,images){
 
   if(images.hero){
     const hero=right.addImage(makeSmallHeroPanel(images.hero));
-    hero.imageSize=new Size(66,78);
+    hero.imageSize=new Size(72,84);
     hero.cornerRadius=11;
   }else{
     const ph=right.addStack();
-    ph.size=new Size(66,78);
+    ph.size=new Size(72,84);
     ph.cornerRadius=11;
     ph.backgroundColor=C('#111725');
     ph.centerAlignContent();
