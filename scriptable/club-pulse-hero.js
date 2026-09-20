@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.3
+// Club Pulse Hero Prototype v0.4
 // Real Madrid post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -367,21 +367,21 @@ function resultChip(parent,result){
 }
 
 function makeBackground(hero){
-  const W=720,H=338;
+  const W=360,H=169;
   const ctx=new DrawContext();
   ctx.size=new Size(W,H);
   ctx.opaque=true;
-  ctx.respectScreenScale=true;
+  ctx.respectScreenScale=false;
   ctx.setFillColor(C('#06080D'));
   ctx.fillRect(new Rect(0,0,W,H));
 
   if(hero){
     const iw=hero.size.width||1, ih=hero.size.height||1;
-    const targetW=300, targetH=320;
+    const targetW=150, targetH=160;
     const scale=Math.min(targetW/iw,targetH/ih);
     const dw=iw*scale, dh=ih*scale;
-    const x=W-dw-18;
-    const y=(H-dh)/2+6;
+    const x=W-dw-9;
+    const y=(H-dh)/2+3;
     ctx.drawImageInRect(hero,new Rect(x,y,dw,dh));
   }
 
@@ -501,21 +501,21 @@ function buildMedium(data,images){
 
 
 function makeLargeBackground(hero){
-  const W=720,H=720;
+  const W=360,H=360;
   const ctx=new DrawContext();
   ctx.size=new Size(W,H);
   ctx.opaque=true;
-  ctx.respectScreenScale=true;
+  ctx.respectScreenScale=false;
   ctx.setFillColor(C('#05070C'));
   ctx.fillRect(new Rect(0,0,W,H));
 
   if(hero){
     const iw=hero.size.width||1, ih=hero.size.height||1;
-    const targetW=405, targetH=575;
+    const targetW=203, targetH=288;
     const scale=Math.min(targetW/iw,targetH/ih);
     const dw=iw*scale, dh=ih*scale;
-    const x=W-dw+42;
-    const y=182+(395-dh)/2;
+    const x=W-dw+21;
+    const y=91+(198-dh)/2;
     ctx.drawImageInRect(hero,new Rect(x,y,dw,dh));
   }
 
