@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.28
+// Club Pulse Hero Prototype v0.29
 // Real Madrid post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -20,7 +20,7 @@ const UI = {
   hero: '#0D1320',
   border: '#2A3D66',
   borderSoft: '#20345A',
-  accent: UI.accent,
+  accent: '#F3C75B',
   text: '#FFFFFF',
   sub: '#DCE6F8',
 };
