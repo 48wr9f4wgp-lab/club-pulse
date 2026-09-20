@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.29
+// Club Pulse Hero Prototype v0.30
 // Real Madrid post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -685,61 +685,64 @@ function buildMedium(data,images){
   root.layoutVertically();
   root.setPadding(0,0,0,0);
 
-  // 1) TOP: compact header + current result
+  // TOP: club / opponent / result / score
   const top=root.addStack();
   top.layoutHorizontally();
   top.centerAlignContent();
-  top.setPadding(2,4,2,4);
+  top.setPadding(1,4,1,4);
 
   if(images.crest){
     const crest=top.addImage(images.crest);
-    crest.imageSize=new Size(19,19);
+    crest.imageSize=new Size(20,20);
   }
 
   spacer(top,5);
 
   const title=top.addStack();
   title.layoutVertically();
-  txtMedium(title,'レアル・マドリード',10.8,'heavy','#FFFFFF',1);
+  txtMedium(title,'レアル・マドリード',10.9,'heavy',UI.text,1);
   txtMedium(
     title,
     compact(data.fixture.opponent,12)+' · '+fmtDate(data.fixture.date),
-    7.3,
+    7.5,
     'semibold',
-    '#FFFFFF',
-    .90
+    UI.sub,
+    1
   );
 
   top.addSpacer();
 
   resultChip(top,data.fixture.result);
   spacer(top,6);
+
   txtMedium(
     top,
     String(data.fixture.ours)+' - '+String(data.fixture.theirs),
-    23,
+    24,
     'heavy',
-    '#FFFFFF',
+    UI.text,
     1
   );
 
   spacer(root,4);
 
-  // 2) BODY: readable info card + dedicated hero
+  // BODY: one full-width card. No dead space outside left/right content.
   const body=root.addStack();
   body.layoutHorizontally();
   body.topAlignContent();
+  body.setPadding(6,8,6,8);
+  body.cornerRadius=12;
+  body.backgroundColor=C(UI.panel,.99);
+  body.borderWidth=1;
+  body.borderColor=C(UI.border,.88);
+  body.size=new Size(0,96);
 
+  // LEFT info area
   const info=body.addStack();
   info.layoutVertically();
-  info.size=new Size(225,0);
-  info.setPadding(6,9,6,9);
-  info.cornerRadius=11;
-  info.backgroundColor=C(UI.panel,.98);
-  info.borderWidth=1;
-  info.borderColor=C(UI.border,.85);
+  info.size=new Size(218,84);
 
-  txtMedium(info,'★ 評価TOP3',8.6,'bold',UI.accent,1);
+  txtMedium(info,'★ 評価TOP3',8.8,'bold',UI.accent,1);
   spacer(info,2);
 
   data.top3.forEach((p,i)=>{
@@ -747,74 +750,80 @@ function buildMedium(data,images){
     r.layoutHorizontally();
     r.centerAlignContent();
 
-    txtMedium(r,String(i+1),8.1,'heavy',i===0?UI.accent:'#FFFFFF',1);
+    txtMedium(r,String(i+1),8.2,'heavy',i===0?UI.accent:UI.text,1);
     spacer(r,5);
+
     txtMedium(
       r,
       compact(displayPlayerName(p.name),13),
-      9.5,
+      9.7,
       i===0?'bold':'semibold',
-      '#FFFFFF',
+      UI.text,
       1
     );
+
     r.addSpacer();
+
     txtMedium(
       r,
       p.rating.toFixed(1),
-      9.3,
+      9.5,
       'heavy',
-      i===0?UI.accent:'#FFFFFF',
+      i===0?UI.accent:UI.text,
       1
     );
   });
 
-  spacer(info,3);
+  info.addSpacer();
 
   const gl=goalLines(data).map(x=>displayPlayerName(x));
   const al=assistLines(data).map(x=>displayPlayerName(x));
 
   txtMedium(
     info,
-    '⚽ '+(gl.length?gl.join(' / '):'—'),
-    8.6,
+    '⚽ 得点  '+(gl.length?gl.join(' / '):'—'),
+    8.8,
     'semibold',
-    '#FFFFFF',
+    UI.text,
     1
   );
-  spacer(info,1);
+  spacer(info,2);
+
   txtMedium(
     info,
-    '🎯 '+(al.length?al.join(' / '):'—'),
-    8.6,
+    '🎯 アシスト  '+(al.length?al.join(' / '):'—'),
+    8.8,
     'semibold',
-    '#FFFFFF',
+    UI.text,
     1
   );
 
-  body.addSpacer(7);
+  body.addSpacer(8);
 
+  // RIGHT Hero area fills the remaining card width.
   const hero=body.addStack();
   hero.layoutVertically();
   hero.centerAlignContent();
+  hero.size=new Size(92,84);
 
   if(images.hero){
     const heroFrame=hero.addStack();
-    heroFrame.setPadding(3,3,3,3);
-    heroFrame.cornerRadius=12;
-    heroFrame.backgroundColor=C(UI.panel,.98);
+    heroFrame.setPadding(2,2,2,2);
+    heroFrame.cornerRadius=11;
+    heroFrame.backgroundColor=C(UI.hero,.98);
     heroFrame.borderWidth=1;
-    heroFrame.borderColor=C(UI.border,.85);
+    heroFrame.borderColor=C(UI.border,.88);
 
     const hi=heroFrame.addImage(makeMediumHeroPanel(images.hero));
-    hi.imageSize=new Size(76,76);
+    hi.imageSize=new Size(82,64);
     hi.cornerRadius=9;
   }else{
     const ph=hero.addStack();
-    ph.size=new Size(82,82);
-    ph.cornerRadius=11;
-    ph.backgroundColor=C('#111725');
+    ph.size=new Size(86,68);
+    ph.cornerRadius=10;
+    ph.backgroundColor=C(UI.hero);
     ph.centerAlignContent();
-    txtMedium(ph,'HERO',8,'heavy','#FFFFFF',.65);
+    txtMedium(ph,'HERO',8,'heavy',UI.text,.70);
   }
 
   spacer(hero,3);
@@ -823,52 +832,54 @@ function buildMedium(data,images){
   mvp.layoutHorizontally();
   mvp.centerAlignContent();
   mvp.setPadding(3,5,3,5);
-  mvp.cornerRadius=9;
-  mvp.backgroundColor=C(UI.panelDark,.98);
+  mvp.cornerRadius=8;
+  mvp.backgroundColor=C(UI.panelDark,.99);
   mvp.borderWidth=1;
-  mvp.borderColor=C(UI.borderSoft,.62);
+  mvp.borderColor=C(UI.borderSoft,.70);
 
-  txtMedium(mvp,'MVP',6.1,'heavy',UI.accent,1);
+  txtMedium(mvp,'MVP',6.2,'heavy',UI.accent,1);
   spacer(mvp,3);
-  txtMedium(mvp,compact(displayPlayerName(data.hero?.name),8),7.6,'bold','#FFFFFF',1);
+  txtMedium(mvp,compact(displayPlayerName(data.hero?.name),8),7.8,'bold',UI.text,1);
   spacer(mvp,3);
-  txtMedium(mvp,data.hero?.rating?.toFixed(1)??'—',7.6,'heavy',UI.accent,1);
+  txtMedium(mvp,data.hero?.rating?.toFixed(1)??'—',7.8,'heavy',UI.accent,1);
 
   root.addSpacer();
 
-  // 3) FOOTER: one compact next-match bar
+  // FOOTER: independent next-match strip
   const footer=root.addStack();
   footer.layoutHorizontally();
   footer.centerAlignContent();
   footer.setPadding(3,6,3,6);
-  footer.cornerRadius=8;
-  footer.backgroundColor=C(UI.panelDark,.98);
+  footer.cornerRadius=9;
+  footer.backgroundColor=C(UI.panelDark,.99);
   footer.borderWidth=1;
-  footer.borderColor=C(UI.borderSoft,.70);
+  footer.borderColor=C(UI.borderSoft,.74);
 
-  txtMedium(footer,'次戦',7.2,'heavy',UI.accent,1);
+  txtMedium(footer,'次戦',7.4,'heavy',UI.accent,1);
   spacer(footer,5);
 
   if(data.next){
     txtMedium(
       footer,
       'vs '+compact(data.next.opponent,14),
-      8.6,
+      8.8,
       'bold',
-      '#FFFFFF',
+      UI.text,
       1
     );
+
     footer.addSpacer();
+
     txtMedium(
       footer,
       fmtDate(data.next.date,true),
-      7.1,
+      7.3,
       'semibold',
-      '#FFFFFF',
-      .94
+      UI.text,
+      .96
     );
   }else{
-    txtMedium(footer,'次戦データなし',7.5,'semibold','#FFFFFF',.85);
+    txtMedium(footer,'次戦データなし',7.6,'semibold',UI.text,.88);
   }
 
   w.refreshAfterDate=new Date(Date.now()+CP.refreshMs);
