@@ -604,7 +604,7 @@ function formChip(parent,value){
     L:['#451B21','#FF7B83','敗']
   }[value]||['#272B33','#9EA4AF','—'];
   p.backgroundColor=C(m[0],.94);
-  txt(p,m[2],7.5,'heavy',m[1]);
+  txt(p,m[2],8.5,'heavy',m[1]);
 }
 
 function contributionBlock(parent,title,lines){
