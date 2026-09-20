@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.30
+// Club Pulse Hero Prototype v0.31
 // Real Madrid post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -901,7 +901,7 @@ function makeLargeBackground(){
 }
 
 function makeHeroPanel(hero){
-  const W=124,H=152;
+  const W=128,H=128;
   const ctx=new DrawContext();
   ctx.size=new Size(W,H);
   ctx.opaque=true;
@@ -1004,19 +1004,21 @@ function buildLarge(data,images){
 
   spacer(root,9);
 
-  // MAIN: LEFT INFO + RIGHT HERO
+  // MAIN: one full-width card with information + Hero.
   const main=root.addStack();
   main.layoutHorizontally();
   main.topAlignContent();
+  main.setPadding(8,9,8,9);
+  main.cornerRadius=13;
+  main.backgroundColor=C(UI.panel,.99);
+  main.borderWidth=1;
+  main.borderColor=C(UI.border,.88);
+  main.size=new Size(0,184);
 
+  // LEFT info area
   const left=main.addStack();
   left.layoutVertically();
-  left.size=new Size(188,0);
-  left.setPadding(7,8,7,8);
-  left.cornerRadius=12;
-  left.backgroundColor=C(UI.panel,.98);
-  left.borderWidth=1;
-  left.borderColor=C(UI.border,.82);
+  left.size=new Size(190,168);
 
   txtLarge(left,'★ 評価TOP3',11.7,'bold',UI.accent,1);
   spacer(left,4);
@@ -1026,7 +1028,7 @@ function buildLarge(data,images){
     r.layoutHorizontally();
     r.centerAlignContent();
 
-    txtLarge(r,String(i+1),10.7,'heavy',i===0?UI.accent:'#FFFFFF',1);
+    txtLarge(r,String(i+1),10.7,'heavy',i===0?UI.accent:UI.text,1);
     spacer(r,7);
 
     txtLarge(
@@ -1034,7 +1036,7 @@ function buildLarge(data,images){
       compact(displayPlayerName(p.name),14),
       13.4,
       i===0?'bold':'semibold',
-      '#FFFFFF',
+      UI.text,
       1
     );
 
@@ -1045,74 +1047,75 @@ function buildLarge(data,images){
       p.rating.toFixed(1),
       12.8,
       'heavy',
-      i===0?UI.accent:'#FFFFFF',
+      i===0?UI.accent:UI.text,
       1
     );
 
     spacer(left,2);
   });
 
-  spacer(left,9);
-
-  const gl=goalLines(data);
-  txtLarge(left,'⚽ 得点',11.5,'bold','#FFFFFF',1);
-  spacer(left,3);
-  (gl.length?gl:['—']).forEach(x=>{
-    txtLarge(left,compact(x,18),12.8,'semibold','#FFFFFF',gl.length?1:.7);
-    spacer(left,1);
-  });
-
   spacer(left,8);
 
-  const al=assistLines(data);
-  txtLarge(left,'🎯 アシスト',11.5,'bold','#FFFFFF',1);
+  const gl=goalLines(data);
+  txtLarge(left,'⚽ 得点',11.5,'bold',UI.text,1);
   spacer(left,3);
-  (al.length?al:['—']).forEach(x=>{
-    txtLarge(left,compact(x,18),12.8,'semibold','#FFFFFF',al.length?1:.7);
+  (gl.length?gl:['—']).forEach(x=>{
+    txtLarge(left,compact(x,18),12.6,'semibold',UI.text,gl.length?1:.72);
     spacer(left,1);
   });
 
-  main.addSpacer(8);
+  spacer(left,7);
 
+  const al=assistLines(data);
+  txtLarge(left,'🎯 アシスト',11.5,'bold',UI.text,1);
+  spacer(left,3);
+  (al.length?al:['—']).forEach(x=>{
+    txtLarge(left,compact(x,18),12.6,'semibold',UI.text,al.length?1:.72);
+    spacer(left,1);
+  });
+
+  main.addSpacer(10);
+
+  // RIGHT Hero area uses the rest of the same card.
   const right=main.addStack();
   right.layoutVertically();
-  right.size=new Size(124,0);
+  right.size=new Size(136,168);
   right.centerAlignContent();
 
   if(images.hero){
     const heroFrame=right.addStack();
     heroFrame.setPadding(3,3,3,3);
     heroFrame.cornerRadius=14;
-    heroFrame.backgroundColor=C(UI.panel,.98);
+    heroFrame.backgroundColor=C(UI.hero,.99);
     heroFrame.borderWidth=1;
-    heroFrame.borderColor=C(UI.border,.82);
+    heroFrame.borderColor=C(UI.border,.88);
 
     const hi=heroFrame.addImage(makeHeroPanel(images.hero));
-    hi.imageSize=new Size(118,146);
+    hi.imageSize=new Size(128,128);
     hi.cornerRadius=11;
   }else{
     const placeholder=right.addStack();
-    placeholder.size=new Size(124,152);
+    placeholder.size=new Size(134,134);
     placeholder.cornerRadius=14;
-    placeholder.backgroundColor=C('#111725');
+    placeholder.backgroundColor=C(UI.hero);
     placeholder.centerAlignContent();
-    txtLarge(placeholder,'HERO',11,'heavy','#FFFFFF',.75);
+    txtLarge(placeholder,'HERO',11,'heavy',UI.text,.75);
   }
 
-  spacer(right,7);
+  right.addSpacer();
 
   const heroCard=right.addStack();
   heroCard.layoutHorizontally();
   heroCard.centerAlignContent();
   heroCard.setPadding(7,8,7,8);
   heroCard.cornerRadius=11;
-  heroCard.backgroundColor=C(UI.panelDark,.98);
+  heroCard.backgroundColor=C(UI.panelDark,.99);
   heroCard.borderWidth=1;
-  heroCard.borderColor=C(UI.borderSoft,.62);
+  heroCard.borderColor=C(UI.borderSoft,.70);
 
   txtLarge(heroCard,'MVP',8.2,'heavy',UI.accent,1);
   spacer(heroCard,5);
-  txtLarge(heroCard,compact(displayPlayerName(data.hero?.name),10),11.2,'bold','#FFFFFF',1);
+  txtLarge(heroCard,compact(displayPlayerName(data.hero?.name),10),11.2,'bold',UI.text,1);
   spacer(heroCard,4);
   txtLarge(heroCard,data.hero?.rating?.toFixed(1)??'—',11.2,'heavy',UI.accent,1);
 
