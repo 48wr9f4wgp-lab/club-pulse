@@ -1,4 +1,4 @@
-// Club Pulse Hero Loader v0.2
+// Club Pulse Hero Loader v0.3
 // Install once in Scriptable. Runtime is always pulled from the dedicated hero-prototype branch.
 
 const REMOTE =
@@ -7,7 +7,7 @@ const REMOTE =
 const fm = FileManager.local();
 const cachePath = fm.joinPath(
   fm.documentsDirectory(),
-  'ClubPulseHeroRuntime_v02.js'
+  'ClubPulseHeroRuntime_v03.js'
 );
 
 async function fetchRuntime() {
