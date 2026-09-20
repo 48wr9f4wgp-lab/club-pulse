@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.10
+// Club Pulse Hero Prototype v0.11
 // Real Madrid post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -569,8 +569,8 @@ function makeLargeBackground(hero){
     const targetW=203, targetH=288;
     const scale=Math.min(targetW/iw,targetH/ih);
     const dw=iw*scale, dh=ih*scale;
-    const x=W-dw+34;
-    const y=80+(198-dh)/2;
+    const x=W-dw+48;
+    const y=102+(198-dh)/2;
     ctx.drawImageInRect(hero,new Rect(x,y,dw,dh));
   }
 
@@ -662,31 +662,32 @@ function buildLarge(data,images){
     spacer(ratings,2);
   });
 
-  spacer(info,9);
+  spacer(info,6);
   const divider=info.addStack();
-  divider.size=new Size(1,76);
-  divider.backgroundColor=C('#FFFFFF',.05);
-  spacer(info,9);
+  divider.size=new Size(1,72);
+  divider.backgroundColor=C('#FFFFFF',.04);
+  spacer(info,6);
 
   const contrib=info.addStack();
   contrib.layoutVertically();
-  contrib.size=new Size(174,0);
+  contrib.size=new Size(150,0);
   contrib.setPadding(6,8,6,8);
   contrib.cornerRadius=10;
   contrib.backgroundColor=C('#02060D',.72);
-  txt(contrib,'⚽ 得点',9.1,'bold','#FFFFFF',.98);
+  txt(contrib,'⚽ 得点',8.8,'bold','#FFFFFF',.98);
   const gl=goalLines(data);
-  (gl.length?gl:['—']).forEach(x=>txt(contrib,compact(x,22),10.2,'semibold','#FFFFFF',gl.length?1:.58));
-  spacer(contrib,7);
-  txt(contrib,'🎯 アシスト',9.1,'bold','#FFFFFF',.98);
+  (gl.length?gl:['—']).forEach(x=>txt(contrib,compact(x,18),9.6,'semibold','#FFFFFF',gl.length?1:.58));
+  spacer(contrib,6);
+  txt(contrib,'🎯 アシスト',8.8,'bold','#FFFFFF',.98);
   const al=assistLines(data);
-  (al.length?al:['—']).forEach(x=>txt(contrib,compact(x,22),10.2,'semibold','#FFFFFF',al.length?1:.58));
+  (al.length?al:['—']).forEach(x=>txt(contrib,compact(x,18),9.6,'semibold','#FFFFFF',al.length?1:.58));
 
   root.addSpacer();
 
   const heroRow=root.addStack();
   heroRow.layoutHorizontally();
   heroRow.addSpacer();
+  spacer(heroRow,12);
   const heroCard=heroRow.addStack();
   heroCard.layoutVertically();
   heroCard.setPadding(5,10,5,10);
