@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.12
+// Club Pulse Hero Prototype v0.13
 // Real Madrid post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -566,15 +566,18 @@ function makeLargeBackground(hero){
 
   if(hero){
     const iw=hero.size.width||1, ih=hero.size.height||1;
-    const targetW=118, targetH=158;
+    const targetW=172, targetH=228;
     const scale=Math.min(targetW/iw,targetH/ih);
     const dw=iw*scale, dh=ih*scale;
-    const x=W-dw+8;
-    const y=188+(120-dh)/2;
+
+    // Hero stage: central-right, below the contribution card.
+    const x=W-dw+18;
+    const y=154+(154-dh)/2;
+
     ctx.drawImageInRect(hero,new Rect(x,y,dw,dh));
   }
 
-  ctx.setFillColor(C('#02050A',.30));
+  ctx.setFillColor(C('#02050A',.26));
   ctx.fillRect(new Rect(0,0,W,H));
   return ctx.getImage();
 }
@@ -689,7 +692,7 @@ function buildLarge(data,images){
   heroRow.addSpacer();
   const heroCard=heroRow.addStack();
   heroCard.layoutVertically();
-  heroCard.setPadding(5,10,5,10);
+  heroCard.setPadding(5,11,5,11);
   heroCard.cornerRadius=11;
   heroCard.backgroundColor=C('#050B14',.68);
   const tag=heroCard.addStack();
