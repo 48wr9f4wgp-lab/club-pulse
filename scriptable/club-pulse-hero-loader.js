@@ -1,4 +1,4 @@
-// Club Pulse Hero Loader v0.3
+// Club Pulse Hero Loader v0.4
 // Install once in Scriptable. Runtime is always pulled from the dedicated hero-prototype branch.
 
 const REMOTE =
@@ -52,4 +52,30 @@ const run = new Function(
   'return (async()=>{\n' + source + '\n})()'
 );
 
-await run(args, config);
+try {
+  await run(args, config);
+} catch (error) {
+  const w = new ListWidget();
+  w.backgroundColor = new Color('#070A10');
+  w.setPadding(14,14,14,14);
+
+  const title = w.addText('CLUB PULSE HERO');
+  title.font = Font.boldSystemFont(13);
+  title.textColor = Color.white();
+
+  w.addSpacer(8);
+
+  const msg = w.addText('Widget実行エラー\n' + String(error));
+  msg.font = Font.systemFont(9);
+  msg.textColor = new Color('#D0D5DF');
+  msg.lineLimit = 8;
+
+  Script.setWidget(w);
+
+  if (config.runsInApp) {
+    if ((config.widgetFamily || 'medium') === 'large') await w.presentLarge();
+    else await w.presentMedium();
+  }
+
+  Script.complete();
+}
