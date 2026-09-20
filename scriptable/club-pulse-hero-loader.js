@@ -1,43 +1,55 @@
-// Club Pulse Hero Loader v0.1
-// Install this file once in Scriptable. The actual prototype lives on GitHub.
+// Club Pulse Hero Loader v0.2
+// Install once in Scriptable. Runtime is always pulled from GitHub main.
 
-const REMOTE = 'https://raw.githubusercontent.com/48wr9f4wgp-lab/club-pulse/main/scriptable/club-pulse-hero.js';
+const REMOTE =
+  'https://api.github.com/repos/48wr9f4wgp-lab/club-pulse/contents/scriptable/club-pulse-hero.js?ref=main';
+
 const fm = FileManager.local();
-const cachePath = fm.joinPath(fm.documentsDirectory(), 'ClubPulseHeroRuntime.js');
+const cachePath = fm.joinPath(
+  fm.documentsDirectory(),
+  'ClubPulseHeroRuntime_v02.js'
+);
 
-async function loadRuntime() {
-  try {
-    const req = new Request(REMOTE + '?v=' + Date.now());
-    req.timeoutInterval = 10;
-    const source = await req.loadString();
-    if (!source || source.length < 5000 || !source.includes('Club Pulse Hero Prototype')) {
-      throw new Error('Invalid Hero runtime');
-    }
-    fm.writeString(cachePath, source);
-    return source;
-  } catch (error) {
-    if (fm.fileExists(cachePath)) return fm.readString(cachePath);
-    throw error;
+async function fetchRuntime() {
+  const req = new Request(REMOTE + '&cb=' + Date.now());
+  req.headers = {
+    'Accept': 'application/vnd.github.raw+json',
+    'User-Agent': 'ClubPulse-Scriptable'
+  };
+  req.timeoutInterval = 12;
+
+  const source = await req.loadString();
+  const status = req.response?.statusCode || 200;
+
+  if (
+    status >= 400 ||
+    !source ||
+    source.length < 5000 ||
+    !source.includes('Club Pulse Hero Prototype')
+  ) {
+    throw new Error('GitHub runtime fetch failed: HTTP ' + status);
   }
+
+  fm.writeString(cachePath, source);
+  return source;
 }
+
+let source;
 
 try {
-  const source = await loadRuntime();
-  const run = new Function('args', 'config', 'return (async()=>{\n' + source + '\n})()');
-  await run(args, config);
+  source = await fetchRuntime();
 } catch (error) {
-  const w = new ListWidget();
-  w.backgroundColor = new Color('#070A10');
-  w.setPadding(14, 14, 14, 14);
-  const title = w.addText('CLUB PULSE HERO');
-  title.font = Font.boldSystemFont(13);
-  title.textColor = Color.white();
-  w.addSpacer(8);
-  const msg = w.addText('GitHub runtimeを読み込めませんでした\n' + String(error));
-  msg.font = Font.systemFont(9);
-  msg.textColor = new Color('#D0D5DF');
-  msg.lineLimit = 6;
-  Script.setWidget(w);
-  if (config.runsInApp) await w.presentMedium();
-  Script.complete();
+  // Manual runs must expose fetch failures instead of silently running stale code.
+  if (config.runsInApp || !fm.fileExists(cachePath)) {
+    throw error;
+  }
+  source = fm.readString(cachePath);
 }
+
+const run = new Function(
+  'args',
+  'config',
+  'return (async()=>{\n' + source + '\n})()'
+);
+
+await run(args, config);
