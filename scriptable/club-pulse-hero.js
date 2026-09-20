@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.33
+// Club Pulse Hero Prototype v0.34
 // Real Madrid post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -1018,24 +1018,27 @@ function buildLarge(data,images){
   // LEFT info area
   const left=main.addStack();
   left.layoutVertically();
+  left.topAlignContent();
   left.size=new Size(190,168);
 
   spacer(left,2);
   txtLarge(left,'★ 評価TOP3',11.7,'bold',UI.accent,1);
   spacer(left,3);
 
+  const denseNames=data.top3.some(p=>String(displayPlayerName(p.name)).length>16);
+
   data.top3.forEach((p,i)=>{
     const r=left.addStack();
     r.layoutHorizontally();
     r.centerAlignContent();
 
-    txtLarge(r,String(i+1),10.7,'heavy',i===0?UI.accent:UI.text,1);
-    spacer(r,7);
+    txtLarge(r,String(i+1),denseNames?10.2:10.7,'heavy',i===0?UI.accent:UI.text,1);
+    spacer(r,denseNames?6:7);
 
     txtLarge(
       r,
-      compact(displayPlayerName(p.name),14),
-      13.4,
+      compact(displayPlayerName(p.name),denseNames?12:14),
+      denseNames?12.4:13.4,
       i===0?'bold':'semibold',
       UI.text,
       1
@@ -1046,33 +1049,68 @@ function buildLarge(data,images){
     txtLarge(
       r,
       p.rating.toFixed(1),
-      12.8,
+      denseNames?12.2:12.8,
       'heavy',
       i===0?UI.accent:UI.text,
       1
     );
 
-    spacer(left,2);
+    spacer(left,denseNames?1:2);
   });
-
-  spacer(left,7);
 
   const gl=goalLines(data);
-  txtLarge(left,'⚽ 得点',11.5,'bold',UI.accent,1);
-  spacer(left,3);
+  const al=assistLines(data);
+  const denseContrib=
+    (gl.length + al.length >= 5) ||
+    gl.some(x=>String(x).length>18) ||
+    al.some(x=>String(x).length>18);
+
+  spacer(left,denseContrib?4:7);
+
+  txtLarge(
+    left,
+    '⚽ 得点',
+    denseContrib?10.7:11.5,
+    'bold',
+    UI.accent,
+    1
+  );
+  spacer(left,denseContrib?2:3);
+
   (gl.length?gl:['—']).forEach(x=>{
-    txtLarge(left,compact(x,18),12.6,'semibold',UI.text,gl.length?1:.72);
-    spacer(left,1);
+    txtLarge(
+      left,
+      compact(x,denseContrib?15:18),
+      denseContrib?11.3:12.6,
+      'semibold',
+      UI.text,
+      gl.length?1:.72
+    );
+    spacer(left,denseContrib?0:1);
   });
 
-  spacer(left,6);
+  spacer(left,denseContrib?4:6);
 
-  const al=assistLines(data);
-  txtLarge(left,'🎯 アシスト',11.5,'bold',UI.accent,1);
-  spacer(left,3);
+  txtLarge(
+    left,
+    '🎯 アシスト',
+    denseContrib?10.7:11.5,
+    'bold',
+    UI.accent,
+    1
+  );
+  spacer(left,denseContrib?2:3);
+
   (al.length?al:['—']).forEach(x=>{
-    txtLarge(left,compact(x,18),12.6,'semibold',UI.text,al.length?1:.72);
-    spacer(left,1);
+    txtLarge(
+      left,
+      compact(x,denseContrib?15:18),
+      denseContrib?11.3:12.6,
+      'semibold',
+      UI.text,
+      al.length?1:.72
+    );
+    spacer(left,denseContrib?0:1);
   });
 
   main.addSpacer(10);
