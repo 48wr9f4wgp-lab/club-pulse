@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.11
+// Club Pulse Hero Prototype v0.12
 // Real Madrid post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -566,15 +566,15 @@ function makeLargeBackground(hero){
 
   if(hero){
     const iw=hero.size.width||1, ih=hero.size.height||1;
-    const targetW=203, targetH=288;
+    const targetW=118, targetH=158;
     const scale=Math.min(targetW/iw,targetH/ih);
     const dw=iw*scale, dh=ih*scale;
-    const x=W-dw+48;
-    const y=102+(198-dh)/2;
+    const x=W-dw+8;
+    const y=188+(120-dh)/2;
     ctx.drawImageInRect(hero,new Rect(x,y,dw,dh));
   }
 
-  ctx.setFillColor(C('#02050A',.26));
+  ctx.setFillColor(C('#02050A',.30));
   ctx.fillRect(new Rect(0,0,W,H));
   return ctx.getImage();
 }
@@ -648,7 +648,7 @@ function buildLarge(data,images){
 
   const ratings=info.addStack();
   ratings.layoutVertically();
-  ratings.size=new Size(176,0);
+  ratings.size=new Size(182,0);
   txt(ratings,'★ 評価TOP3',7.7,'bold','#F3C75B');
   spacer(ratings,3);
   data.top3.forEach((p,i)=>{
@@ -670,24 +670,23 @@ function buildLarge(data,images){
 
   const contrib=info.addStack();
   contrib.layoutVertically();
-  contrib.size=new Size(150,0);
-  contrib.setPadding(6,8,6,8);
+  contrib.size=new Size(176,0);
+  contrib.setPadding(7,9,7,9);
   contrib.cornerRadius=10;
-  contrib.backgroundColor=C('#02060D',.72);
-  txt(contrib,'⚽ 得点',8.8,'bold','#FFFFFF',.98);
+  contrib.backgroundColor=C('#02060D',.78);
+  txt(contrib,'⚽ 得点',9.4,'bold','#FFFFFF',1);
   const gl=goalLines(data);
-  (gl.length?gl:['—']).forEach(x=>txt(contrib,compact(x,18),9.6,'semibold','#FFFFFF',gl.length?1:.58));
-  spacer(contrib,6);
-  txt(contrib,'🎯 アシスト',8.8,'bold','#FFFFFF',.98);
+  (gl.length?gl:['—']).forEach(x=>txt(contrib,compact(x,24),10.6,'semibold','#FFFFFF',gl.length?1:.58));
+  spacer(contrib,7);
+  txt(contrib,'🎯 アシスト',9.4,'bold','#FFFFFF',1);
   const al=assistLines(data);
-  (al.length?al:['—']).forEach(x=>txt(contrib,compact(x,18),9.6,'semibold','#FFFFFF',al.length?1:.58));
+  (al.length?al:['—']).forEach(x=>txt(contrib,compact(x,24),10.6,'semibold','#FFFFFF',al.length?1:.58));
 
   root.addSpacer();
 
   const heroRow=root.addStack();
   heroRow.layoutHorizontally();
   heroRow.addSpacer();
-  spacer(heroRow,12);
   const heroCard=heroRow.addStack();
   heroCard.layoutVertically();
   heroCard.setPadding(5,10,5,10);
