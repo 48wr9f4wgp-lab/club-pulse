@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.25
+// Club Pulse Hero Prototype v0.26
 // Real Madrid post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -546,10 +546,15 @@ function buildSmall(data,images){
 
   spacer(root,6);
 
-  // Main body
+  // Main body: explicit readable card
   const body=root.addStack();
   body.layoutHorizontally();
   body.topAlignContent();
+  body.setPadding(7,7,7,7);
+  body.cornerRadius=12;
+  body.backgroundColor=C('#111C35',.98);
+  body.borderWidth=1;
+  body.borderColor=C('#2A3D66',.82);
 
   const left=body.addStack();
   left.layoutVertically();
@@ -579,8 +584,8 @@ function buildSmall(data,images){
     (data.fixture.home?'ホーム':'アウェイ')+' · '+fmtDate(data.fixture.date),
     7.1,
     'semibold',
-    '#FFFFFF',
-    .88
+    '#DCE6F8',
+    .98
   );
 
   left.addSpacer();
@@ -672,6 +677,7 @@ function buildMedium(data,images){
   const top=root.addStack();
   top.layoutHorizontally();
   top.centerAlignContent();
+  top.setPadding(2,4,2,4);
 
   if(images.crest){
     const crest=top.addImage(images.crest);
@@ -715,9 +721,11 @@ function buildMedium(data,images){
   const info=body.addStack();
   info.layoutVertically();
   info.size=new Size(225,0);
-  info.setPadding(5,8,5,8);
-  info.cornerRadius=10;
-  info.backgroundColor=C('#0A0F18',.96);
+  info.setPadding(6,9,6,9);
+  info.cornerRadius=11;
+  info.backgroundColor=C('#111C35',.98);
+  info.borderWidth=1;
+  info.borderColor=C('#2A3D66',.85);
 
   txtMedium(info,'★ 評価TOP3',8.6,'bold','#F3C75B',1);
   spacer(info,2);
@@ -778,9 +786,16 @@ function buildMedium(data,images){
   hero.centerAlignContent();
 
   if(images.hero){
-    const hi=hero.addImage(makeMediumHeroPanel(images.hero));
-    hi.imageSize=new Size(82,82);
-    hi.cornerRadius=11;
+    const heroFrame=hero.addStack();
+    heroFrame.setPadding(3,3,3,3);
+    heroFrame.cornerRadius=12;
+    heroFrame.backgroundColor=C('#111C35',.98);
+    heroFrame.borderWidth=1;
+    heroFrame.borderColor=C('#2A3D66',.85);
+
+    const hi=heroFrame.addImage(makeMediumHeroPanel(images.hero));
+    hi.imageSize=new Size(76,76);
+    hi.cornerRadius=9;
   }else{
     const ph=hero.addStack();
     ph.size=new Size(82,82);
@@ -813,7 +828,9 @@ function buildMedium(data,images){
   footer.centerAlignContent();
   footer.setPadding(3,6,3,6);
   footer.cornerRadius=8;
-  footer.backgroundColor=C('#07101C',.92);
+  footer.backgroundColor=C('#0B1730',.98);
+  footer.borderWidth=1;
+  footer.borderColor=C('#20345A',.70);
 
   txtMedium(footer,'次戦',7.2,'heavy','#F3C75B',1);
   spacer(footer,5);
