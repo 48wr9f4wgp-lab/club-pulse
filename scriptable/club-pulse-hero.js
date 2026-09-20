@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.18
+// Club Pulse Hero Prototype v0.19
 // Real Madrid post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -413,7 +413,7 @@ function resultChip(parent,result){
     LOSS:['#8E2935','#FFFFFF','敗戦']
   }[result]||['#454B57','#FFFFFF','結果'];
   p.backgroundColor=C(m[0],.96);
-  txt(p,m[2],8,'heavy',m[1]);
+  txt(p,m[2],9,'heavy',m[1]);
 }
 
 function makeBackground(hero){
@@ -569,7 +569,7 @@ function makeLargeBackground(){
 }
 
 function makeHeroPanel(hero){
-  const W=146,H=176;
+  const W=130,H=160;
   const ctx=new DrawContext();
   ctx.size=new Size(W,H);
   ctx.opaque=true;
@@ -610,13 +610,11 @@ function formChip(parent,value){
 function contributionBlock(parent,title,lines){
   const box=parent.addStack();
   box.layoutVertically();
-  box.setPadding(8,10,8,10);
-  box.cornerRadius=10;
-  box.backgroundColor=C('#0A0E16',.90);
-  txt(box,title,9.4,'bold','#FFFFFF',1);
-  spacer(box,2);
+  txt(box,title,10.2,'bold','#FFFFFF',1);
+  spacer(box,3);
   (lines.length?lines:['—']).forEach(x=>{
-    txt(box,compact(x,22),10.4,'semibold','#FFFFFF',lines.length?1:.58);
+    txt(box,compact(x,20),11.1,'semibold','#FFFFFF',lines.length?1:.62);
+    spacer(box,1);
   });
   return box;
 }
@@ -642,7 +640,7 @@ function buildLarge(data,images){
   spacer(h,7);
   txt(h,CP.clubName,13,'heavy');
   spacer(h,7);
-  txt(h,data.fixture.competition,7.5,'semibold','#D9DDE6',.84);
+  txt(h,data.fixture.competition,8.6,'semibold','#FFFFFF',.92);
   h.addSpacer();
   resultChip(h,data.fixture.result);
 
@@ -653,8 +651,8 @@ function buildLarge(data,images){
   score.centerAlignContent();
   const sl=score.addStack();
   sl.layoutVertically();
-  txt(sl,compact(data.fixture.opponent,22),10,'semibold','#F0F2F6',.98);
-  txt(sl,(data.fixture.home?'ホーム':'アウェイ')+' · '+fmtDate(data.fixture.date),7.2,'medium','#C3C9D3',.86);
+  txt(sl,compact(data.fixture.opponent,22),11.2,'bold','#FFFFFF',1);
+  txt(sl,(data.fixture.home?'ホーム':'アウェイ')+' · '+fmtDate(data.fixture.date),8.7,'semibold','#FFFFFF',.92);
   score.addSpacer();
   txt(score,String(data.fixture.ours)+' - '+String(data.fixture.theirs),31,'heavy');
 
@@ -667,29 +665,29 @@ function buildLarge(data,images){
   // Left: all match information. No portrait can enter this column.
   const left=main.addStack();
   left.layoutVertically();
-  left.size=new Size(202,0);
+  left.size=new Size(188,0);
 
-  txt(left,'★ 評価TOP3',8.3,'bold','#F3C75B');
+  txt(left,'★ 評価TOP3',9.6,'bold','#F3C75B');
   spacer(left,4);
 
   data.top3.forEach((p,i)=>{
     const r=left.addStack();
     r.layoutHorizontally();
     r.centerAlignContent();
-    txt(r,String(i+1),8.2,'heavy',i===0?'#F3C75B':'#C4CAD4');
+    txt(r,String(i+1),9.2,'heavy',i===0?'#F3C75B':'#FFFFFF');
     spacer(r,7);
-    txt(r,compact(displayPlayerName(p.name),15),9.6,i===0?'bold':'semibold','#FFFFFF',i===0?1:.94);
+    txt(r,compact(displayPlayerName(p.name),15),10.9,i===0?'bold':'semibold','#FFFFFF',1);
     r.addSpacer();
-    txt(r,p.rating.toFixed(1),9.4,'heavy',i===0?'#F3C75B':'#FFFFFF',i===0?1:.94);
+    txt(r,p.rating.toFixed(1),10.5,'heavy',i===0?'#F3C75B':'#FFFFFF',1);
     spacer(left,2);
   });
 
-  spacer(left,7);
+  spacer(left,9);
 
   const gl=goalLines(data);
   contributionBlock(left,'⚽ 得点',gl);
 
-  spacer(left,6);
+  spacer(left,8);
 
   const al=assistLines(data);
   contributionBlock(left,'🎯 アシスト',al);
@@ -699,16 +697,16 @@ function buildLarge(data,images){
   // Right: dedicated Hero panel. Nothing else overlays this image.
   const right=main.addStack();
   right.layoutVertically();
-  right.size=new Size(146,0);
+  right.size=new Size(130,0);
   right.centerAlignContent();
 
   if(images.hero){
     const hi=right.addImage(makeHeroPanel(images.hero));
-    hi.imageSize=new Size(146,176);
+    hi.imageSize=new Size(130,160);
     hi.cornerRadius=14;
   }else{
     const placeholder=right.addStack();
-    placeholder.size=new Size(146,176);
+    placeholder.size=new Size(130,160);
     placeholder.cornerRadius=13;
     placeholder.backgroundColor=C('#111725');
     placeholder.centerAlignContent();
@@ -720,21 +718,21 @@ function buildLarge(data,images){
   const heroCard=right.addStack();
   heroCard.layoutHorizontally();
   heroCard.centerAlignContent();
-  heroCard.setPadding(7,10,7,10);
+  heroCard.setPadding(7,8,7,8);
   heroCard.cornerRadius=11;
   heroCard.backgroundColor=C('#0A0F18',.92);
-  txt(heroCard,'MVP',7.1,'heavy','#F3C75B');
+  txt(heroCard,'MVP',7.8,'heavy','#F3C75B');
   spacer(heroCard,5);
-  txt(heroCard,compact(displayPlayerName(data.hero?.name),12),10.0,'bold','#FFFFFF');
+  txt(heroCard,compact(displayPlayerName(data.hero?.name),11),10.5,'bold','#FFFFFF');
   spacer(heroCard,4);
-  txt(heroCard,data.hero?.rating?.toFixed(1)??'—',10.0,'heavy','#F3C75B');
+  txt(heroCard,data.hero?.rating?.toFixed(1)??'—',10.5,'heavy','#F3C75B');
 
   root.addSpacer();
 
   const form=root.addStack();
   form.layoutHorizontally();
   form.centerAlignContent();
-  txt(form,'直近5試合',7.2,'heavy','#C5CBD5',.88);
+  txt(form,'直近5試合',8.7,'heavy','#FFFFFF',.94);
   spacer(form,7);
   const ff=(data.form||[]).slice(0,5);
   if(ff.length){
@@ -754,12 +752,12 @@ function buildLarge(data,images){
   footer.setPadding(6,9,6,9);
   footer.cornerRadius=11;
   footer.backgroundColor=C('#07101C',.80);
-  txt(footer,'次戦',7.3,'heavy','#F3C75B');
+  txt(footer,'次戦',8.5,'heavy','#F3C75B');
   spacer(footer,8);
   if(data.next){
-    txt(footer,'vs '+compact(data.next.opponent,21),9.1,'semibold');
+    txt(footer,'vs '+compact(data.next.opponent,21),10.5,'bold','#FFFFFF',1);
     footer.addSpacer();
-    txt(footer,fmtDate(data.next.date,true)+' / '+data.next.competition,7.2,'medium','#E0E4EB',.92);
+    txt(footer,fmtDate(data.next.date,true)+' / '+data.next.competition,8.3,'semibold','#FFFFFF',.94);
   }else{
     txt(footer,'次戦データなし',8,'medium','#D2D7E1',.78);
   }
