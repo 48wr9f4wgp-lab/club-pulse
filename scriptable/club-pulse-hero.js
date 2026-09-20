@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.4
+// Club Pulse Hero Prototype v0.5
 // Real Madrid post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -444,6 +444,11 @@ function buildMedium(data,images){
   overlay.locations=[0,.44,.72,1];
   root.backgroundGradient=overlay;
 
+  const accent=root.addStack();
+  accent.size=new Size(0,1.5);
+  accent.backgroundColor=C('#E8BC52',.55);
+  spacer(root,7);
+
   const h=root.addStack(); h.layoutHorizontally(); h.centerAlignContent();
   if(images.crest){const im=h.addImage(images.crest);im.imageSize=new Size(22,22);}
   spacer(h,6); txt(h,CP.clubName,11,'heavy');
@@ -514,8 +519,8 @@ function makeLargeBackground(hero){
     const targetW=203, targetH=288;
     const scale=Math.min(targetW/iw,targetH/ih);
     const dw=iw*scale, dh=ih*scale;
-    const x=W-dw+21;
-    const y=91+(198-dh)/2;
+    const x=W-dw+25;
+    const y=96+(198-dh)/2;
     ctx.drawImageInRect(hero,new Rect(x,y,dw,dh));
   }
 
@@ -591,7 +596,7 @@ function buildLarge(data,images){
 
   const ratings=info.addStack();
   ratings.layoutVertically();
-  ratings.size=new Size(182,0);
+  ratings.size=new Size(176,0);
   txt(ratings,'★ TOP RATED',7.2,'bold','#F3C75B');
   spacer(ratings,3);
   data.top3.forEach((p,i)=>{
@@ -607,20 +612,20 @@ function buildLarge(data,images){
 
   spacer(info,12);
   const divider=info.addStack();
-  divider.size=new Size(1,92);
-  divider.backgroundColor=C('#FFFFFF',.07);
+  divider.size=new Size(1,76);
+  divider.backgroundColor=C('#FFFFFF',.05);
   spacer(info,12);
 
   const contrib=info.addStack();
   contrib.layoutVertically();
-  contrib.size=new Size(162,0);
-  txt(contrib,'⚽ GOALS',8.2,'bold','#FFFFFF',.92);
+  contrib.size=new Size(166,0);
+  txt(contrib,'⚽ GOALS',8.6,'bold','#FFFFFF',.94);
   const gl=goalLines(data);
-  (gl.length?gl:['—']).forEach(x=>txt(contrib,compact(x,20),9.3,'semibold','#FFFFFF',gl.length?.98:.55));
+  (gl.length?gl:['—']).forEach(x=>txt(contrib,compact(x,21),9.8,'semibold','#FFFFFF',gl.length?.99:.55));
   spacer(contrib,6);
-  txt(contrib,'🎯 ASSISTS',8.2,'bold','#FFFFFF',.92);
+  txt(contrib,'🎯 ASSISTS',8.6,'bold','#FFFFFF',.94);
   const al=assistLines(data);
-  (al.length?al:['—']).forEach(x=>txt(contrib,compact(x,20),9.3,'semibold','#FFFFFF',al.length?.98:.55));
+  (al.length?al:['—']).forEach(x=>txt(contrib,compact(x,21),9.8,'semibold','#FFFFFF',al.length?.99:.55));
 
   root.addSpacer();
 
@@ -629,9 +634,9 @@ function buildLarge(data,images){
   heroRow.addSpacer();
   const heroCard=heroRow.addStack();
   heroCard.layoutVertically();
-  heroCard.setPadding(5,9,5,9);
-  heroCard.cornerRadius=10;
-  heroCard.backgroundColor=C('#07101C',.50);
+  heroCard.setPadding(5,10,5,10);
+  heroCard.cornerRadius=11;
+  heroCard.backgroundColor=C('#050B14',.68);
   const tag=heroCard.addStack();
   tag.layoutHorizontally();
   txt(tag,'MVP',6.5,'heavy','#F3C75B');
@@ -645,7 +650,7 @@ function buildLarge(data,images){
   const form=root.addStack();
   form.layoutHorizontally();
   form.centerAlignContent();
-  txt(form,'RECENT',6.4,'heavy','#AEB5C0',.75);
+  txt(form,'RECENT 5',6.8,'heavy','#B7BEC9',.80);
   spacer(form,7);
   const ff=(data.form||[]).slice(0,5);
   if(ff.length){
@@ -662,13 +667,13 @@ function buildLarge(data,images){
   const f=root.addStack();
   f.layoutHorizontally();
   f.centerAlignContent();
-  f.setPadding(5,8,5,8);
-  f.cornerRadius=10;
-  f.backgroundColor=C('#07101C',.66);
-  txt(f,'NEXT',6.8,'heavy','#F3C75B');
+  f.setPadding(6,9,6,9);
+  f.cornerRadius=11;
+  f.backgroundColor=C('#07101C',.76);
+  txt(f,'NEXT',7.0,'heavy','#F3C75B');
   spacer(f,8);
   if(data.next){
-    txt(f,'vs '+compact(data.next.opponent,21),8.8,'semibold');
+    txt(f,'vs '+compact(data.next.opponent,21),9.2,'semibold');
     f.addSpacer();
     txt(f,fmtDate(data.next.date,true)+' · '+data.next.competition,7,'medium','#D2D7E1',.82);
   }else{
