@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.21
+// Club Pulse Hero Prototype v0.22
 // Real Madrid post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -631,82 +631,207 @@ function buildSmall(data,images){
   return w;
 }
 
+function makeMediumHeroPanel(hero){
+  const W=88,H=96;
+  const ctx=new DrawContext();
+  ctx.size=new Size(W,H);
+  ctx.opaque=true;
+  ctx.respectScreenScale=false;
+
+  ctx.setFillColor(C('#0D1320'));
+  ctx.fillRect(new Rect(0,0,W,H));
+
+  if(hero){
+    const iw=hero.size.width||1, ih=hero.size.height||1;
+    const scale=Math.max(W/iw,H/ih);
+    const dw=iw*scale,dh=ih*scale;
+    const x=(W-dw)/2;
+    const y=(H-dh)/2+2;
+    ctx.drawImageInRect(hero,new Rect(x,y,dw,dh));
+  }
+
+  return ctx.getImage();
+}
+
+function txtMedium(parent,value,size,weight='semibold',color='#FFFFFF',alpha=1){
+  const t=txt(parent,value,size,weight,color,alpha);
+  t.minimumScaleFactor=.86;
+  return t;
+}
+
 function buildMedium(data,images){
   const w=new ListWidget();
-  w.setPadding(0,0,0,0);
-  w.backgroundImage=makeBackground(images.hero);
+  w.setPadding(8,9,8,9);
+  w.backgroundColor=C('#060910');
 
   const root=w.addStack();
   root.layoutVertically();
-  root.setPadding(10,12,9,12);
+  root.setPadding(0,0,0,0);
 
-  const overlay=new LinearGradient();
-  overlay.startPoint=new Point(0,0.5);
-  overlay.endPoint=new Point(1,0.5);
-  overlay.colors=[
-    C('#02050A',.96),
-    C('#02050A',.86),
-    C('#02050A',.52),
-    C('#02050A',.18)
-  ];
-  overlay.locations=[0,.44,.72,1];
-  root.backgroundGradient=overlay;
+  // HEADER
+  const h=root.addStack();
+  h.layoutHorizontally();
+  h.centerAlignContent();
 
-  const accent=root.addStack();
-  accent.size=new Size(0,1.5);
-  accent.backgroundColor=C('#E8BC52',.55);
-  spacer(root,7);
+  if(images.crest){
+    const im=h.addImage(images.crest);
+    im.imageSize=new Size(20,20);
+  }
 
-  const h=root.addStack(); h.layoutHorizontally(); h.centerAlignContent();
-  if(images.crest){const im=h.addImage(images.crest);im.imageSize=new Size(22,22);}
-  spacer(h,6); txt(h,CP.clubName,11,'heavy');
-  spacer(h,6); txt(h,data.fixture.competition,7,'semibold','#D9DDE6',.82);
-  h.addSpacer(); resultChip(h,data.fixture.result);
+  spacer(h,6);
+  txtMedium(h,'レアル・マドリード',11.6,'heavy','#FFFFFF',1);
+  spacer(h,6);
+  txtMedium(h,data.fixture.competition,8.2,'bold','#FFFFFF',.94);
+  h.addSpacer();
+  resultChip(h,data.fixture.result);
 
-  spacer(root,6);
-  const s=root.addStack(); s.layoutHorizontally(); s.centerAlignContent();
-  const sl=s.addStack(); sl.layoutVertically();
-  txt(sl,compact(data.fixture.opponent,20),8.5,'semibold','#EEF1F5',.94);
-  txt(sl,(data.fixture.home?'ホーム':'アウェイ')+' · '+fmtDate(data.fixture.date),6.4,'medium','#BBC2CF',.78);
-  s.addSpacer();
-  txt(s,String(data.fixture.ours)+' - '+String(data.fixture.theirs),25,'heavy');
+  spacer(root,4);
 
-  spacer(root,7);
-  const body=root.addStack(); body.layoutHorizontally();
+  // SCORE + OPPONENT
+  const score=root.addStack();
+  score.layoutHorizontally();
+  score.centerAlignContent();
 
-  const ratings=body.addStack(); ratings.layoutVertically(); ratings.size=new Size(158,0);
-  txt(ratings,'★ 評価TOP3',7.1,'bold','#F3C75B');
-  spacer(ratings,2);
+  const matchMeta=score.addStack();
+  matchMeta.layoutVertically();
+  txtMedium(matchMeta,compact(data.fixture.opponent,16),10.6,'bold','#FFFFFF',1);
+  txtMedium(
+    matchMeta,
+    (data.fixture.home?'ホーム':'アウェイ')+' · '+fmtDate(data.fixture.date),
+    8.2,
+    'semibold',
+    '#FFFFFF',
+    .92
+  );
+
+  score.addSpacer();
+  txtMedium(score,String(data.fixture.ours)+' - '+String(data.fixture.theirs),27,'heavy','#FFFFFF',1);
+
+  spacer(root,5);
+
+  // BODY: readable info + hero
+  const body=root.addStack();
+  body.layoutHorizontally();
+  body.topAlignContent();
+
+  const left=body.addStack();
+  left.layoutVertically();
+  left.size=new Size(226,0);
+
+  txtMedium(left,'★ 評価TOP3',8.8,'bold','#F3C75B',1);
+  spacer(left,2);
+
   data.top3.forEach((p,i)=>{
-    const r=ratings.addStack(); r.layoutHorizontally();
-    txt(r,String(i+1),7.2,'heavy',i===0?'#F3C75B':'#BFC5D0');
-    spacer(r,6); txt(r,compact(displayPlayerName(p.name),14),8.4,i===0?'bold':'semibold','#FFFFFF',i===0?1:.90);
-    r.addSpacer(); txt(r,p.rating.toFixed(1),8.2,'heavy',i===0?'#F3C75B':'#FFFFFF',i===0?1:.88);
-    spacer(ratings,1);
+    const r=left.addStack();
+    r.layoutHorizontally();
+    r.centerAlignContent();
+
+    txtMedium(r,String(i+1),8.4,'heavy',i===0?'#F3C75B':'#FFFFFF',1);
+    spacer(r,6);
+    txtMedium(
+      r,
+      compact(displayPlayerName(p.name),14),
+      10.1,
+      i===0?'bold':'semibold',
+      '#FFFFFF',
+      1
+    );
+    r.addSpacer();
+    txtMedium(
+      r,
+      p.rating.toFixed(1),
+      9.8,
+      'heavy',
+      i===0?'#F3C75B':'#FFFFFF',
+      1
+    );
+    spacer(left,1);
   });
 
-  spacer(body,10);
-  const v=body.addStack(); v.size=new Size(1,72); v.backgroundColor=C('#FFFFFF',.16);
-  spacer(body,10);
+  spacer(left,4);
 
-  const c=body.addStack(); c.layoutVertically(); c.size=new Size(122,0);
-  txt(c,'⚽ 得点',7.4,'bold','#FFFFFF',.92);
-  const gl=goalLines(data);
-  (gl.length?gl:['—']).forEach(x=>txt(c,compact(x,17),8.0,'semibold','#FFFFFF',gl.length?.96:.55));
-  spacer(c,3);
-  txt(c,'🎯 アシスト',7.4,'bold','#FFFFFF',.92);
-  const al=assistLines(data);
-  (al.length?al:['—']).forEach(x=>txt(c,compact(x,17),8.0,'semibold','#FFFFFF',al.length?.96:.55));
+  const gl=goalLines(data).map(x=>displayPlayerName(x));
+  const al=assistLines(data).map(x=>displayPlayerName(x));
+
+  txtMedium(
+    left,
+    '⚽ '+(gl.length?gl.join(' / '):'—'),
+    8.9,
+    'semibold',
+    '#FFFFFF',
+    1
+  );
+  spacer(left,1);
+  txtMedium(
+    left,
+    '🎯 '+(al.length?al.join(' / '):'—'),
+    8.9,
+    'semibold',
+    '#FFFFFF',
+    1
+  );
+
+  body.addSpacer(8);
+
+  const right=body.addStack();
+  right.layoutVertically();
+  right.centerAlignContent();
+
+  if(images.hero){
+    const hi=right.addImage(makeMediumHeroPanel(images.hero));
+    hi.imageSize=new Size(88,96);
+    hi.cornerRadius=12;
+  }else{
+    const ph=right.addStack();
+    ph.size=new Size(88,96);
+    ph.cornerRadius=12;
+    ph.backgroundColor=C('#111725');
+    ph.centerAlignContent();
+    txtMedium(ph,'HERO',9,'heavy','#FFFFFF',.65);
+  }
+
+  spacer(right,4);
+
+  const mvp=right.addStack();
+  mvp.layoutHorizontally();
+  mvp.centerAlignContent();
+  mvp.setPadding(4,6,4,6);
+  mvp.cornerRadius=9;
+  mvp.backgroundColor=C('#0A0F18',.94);
+
+  txtMedium(mvp,'MVP',6.8,'heavy','#F3C75B',1);
+  spacer(mvp,4);
+  txtMedium(mvp,compact(displayPlayerName(data.hero?.name),9),8.2,'bold','#FFFFFF',1);
+  spacer(mvp,3);
+  txtMedium(mvp,data.hero?.rating?.toFixed(1)??'—',8.2,'heavy','#F3C75B',1);
 
   root.addSpacer();
 
-  const f=root.addStack(); f.layoutHorizontally(); f.centerAlignContent();
-  f.setPadding(4,7,4,7); f.cornerRadius=9; f.backgroundColor=C('#07101C',.58);
-  txt(f,'次戦',6.9,'heavy','#F3C75B'); spacer(f,7);
+  // NEXT
+  const footer=root.addStack();
+  footer.layoutHorizontally();
+  footer.centerAlignContent();
+  footer.setPadding(4,7,4,7);
+  footer.cornerRadius=9;
+  footer.backgroundColor=C('#07101C',.90);
+
+  txtMedium(footer,'次戦',7.8,'heavy','#F3C75B',1);
+  spacer(footer,6);
+
   if(data.next){
-    txt(f,'vs '+compact(data.next.opponent,20),8.2,'semibold');
-    f.addSpacer(); txt(f,fmtDate(data.next.date,true)+' / '+data.next.competition,6.7,'medium','#D2D7E1',.82);
-  }else txt(f,'次戦データなし',7.5,'medium','#D2D7E1',.78);
+    txtMedium(footer,'vs '+compact(data.next.opponent,16),9.3,'bold','#FFFFFF',1);
+    footer.addSpacer();
+    txtMedium(
+      footer,
+      fmtDate(data.next.date,true),
+      7.8,
+      'semibold',
+      '#FFFFFF',
+      .95
+    );
+  }else{
+    txtMedium(footer,'次戦データなし',8,'semibold','#FFFFFF',.85);
+  }
 
   w.refreshAfterDate=new Date(Date.now()+CP.refreshMs);
   return w;
