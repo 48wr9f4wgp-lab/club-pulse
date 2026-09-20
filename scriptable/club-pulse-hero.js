@@ -10,7 +10,7 @@ const CP = {
   base: 'https://www.fotmob.com/api/data',
   imageBase: 'https://images.fotmob.com/image_resources',
   cacheTtlMs: 60 * 60 * 1000,
-  refreshMs: 45 * 60 * 1000,
+  refreshMs: 5 * 60 * 1000,
 };
 
 const fm = FileManager.local();
