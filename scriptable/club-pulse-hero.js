@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.6
+// Club Pulse Hero Prototype v0.7
 // Real Madrid post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -111,11 +111,41 @@ function resultOf(sc){
 function compName(m){
   const n = String(m?.league?.name || m?.tournament?.name || '');
   const l=n.toLowerCase();
-  if(l.includes('laliga') || l.includes('la liga')) return 'LaLiga';
+  if(l.includes('laliga') || l.includes('la liga')) return 'ラ・リーガ';
   if(l.includes('champions')) return 'CL';
   if(l.includes('copa del rey')) return '国王杯';
   if(l.includes('super')) return 'SUPER';
   return n || '公式戦';
+}
+
+function jpTeamName(name){
+  const n=String(name||'').trim();
+  const map={
+    'Elche':'エルチェ',
+    'Elche CF':'エルチェ',
+    'Atletico Madrid':'アトレティコ・マドリード',
+    'Atlético Madrid':'アトレティコ・マドリード',
+    'Club Atlético de Madrid':'アトレティコ・マドリード',
+    'Barcelona':'バルセロナ',
+    'FC Barcelona':'バルセロナ',
+    'Real Sociedad':'レアル・ソシエダ',
+    'Real Sociedad de Fútbol':'レアル・ソシエダ',
+    'Athletic Club':'アスレティック・クラブ',
+    'Villarreal':'ビジャレアル',
+    'Villarreal CF':'ビジャレアル',
+    'Sevilla':'セビージャ',
+    'Sevilla FC':'セビージャ',
+    'Valencia':'バレンシア',
+    'Valencia CF':'バレンシア',
+    'Real Betis':'ベティス',
+    'Real Betis Balompié':'ベティス',
+    'Rayo Vallecano':'ラージョ・バジェカーノ',
+    'Getafe':'ヘタフェ',
+    'Girona':'ジローナ',
+    'Mallorca':'マジョルカ',
+    'Osasuna':'オサスナ'
+  };
+  return map[n]||n||'—';
 }
 
 function fmtDate(value, withTime=false){
@@ -305,7 +335,7 @@ async function fetchData(force=false){
         id:last.id,
         date:fixtureTime(last) || detail?.general?.matchTimeUTCDate,
         competition:compName(last),
-        opponent:opp?.name || '—',
+        opponent:jpTeamName(opp?.name),
         opponentId:opp?.id || null,
         opponentLogo:opp?.id?imgTeam(opp.id):null,
         ours:score.ours,
@@ -321,7 +351,7 @@ async function fetchData(force=false){
         id:next.id,
         date:fixtureTime(next),
         competition:compName(next),
-        opponent:nextSide?.opp?.name || '—',
+        opponent:jpTeamName(nextSide?.opp?.name),
         opponentId:nextSide?.opp?.id || null,
         opponentLogo:nextSide?.opp?.id?imgTeam(nextSide.opp.id):null
       }:null
@@ -361,9 +391,13 @@ function resultChip(parent,result){
   const p=parent.addStack();
   p.setPadding(3,7,3,7);
   p.cornerRadius=7;
-  const m={WIN:['#E8BC52','#090B10'],DRAW:['#69707E','#FFFFFF'],LOSS:['#8E2935','#FFFFFF']}[result]||['#454B57','#FFFFFF'];
+  const m={
+    WIN:['#E8BC52','#090B10','勝利'],
+    DRAW:['#69707E','#FFFFFF','引分'],
+    LOSS:['#8E2935','#FFFFFF','敗戦']
+  }[result]||['#454B57','#FFFFFF','結果'];
   p.backgroundColor=C(m[0],.96);
-  txt(p,result,8,'heavy',m[1]);
+  txt(p,m[2],8,'heavy',m[1]);
 }
 
 function makeBackground(hero){
@@ -459,7 +493,7 @@ function buildMedium(data,images){
   const s=root.addStack(); s.layoutHorizontally(); s.centerAlignContent();
   const sl=s.addStack(); sl.layoutVertically();
   txt(sl,compact(data.fixture.opponent,20),8.5,'semibold','#EEF1F5',.94);
-  txt(sl,(data.fixture.home?'HOME':'AWAY')+' · '+fmtDate(data.fixture.date),6.4,'medium','#BBC2CF',.72);
+  txt(sl,(data.fixture.home?'ホーム':'アウェイ')+' · '+fmtDate(data.fixture.date),6.4,'medium','#BBC2CF',.78);
   s.addSpacer();
   txt(s,String(data.fixture.ours)+' - '+String(data.fixture.theirs),25,'heavy');
 
@@ -467,7 +501,7 @@ function buildMedium(data,images){
   const body=root.addStack(); body.layoutHorizontally();
 
   const ratings=body.addStack(); ratings.layoutVertically(); ratings.size=new Size(158,0);
-  txt(ratings,'★ TOP RATED',6.8,'bold','#F3C75B');
+  txt(ratings,'★ 評価TOP3',7.1,'bold','#F3C75B');
   spacer(ratings,2);
   data.top3.forEach((p,i)=>{
     const r=ratings.addStack(); r.layoutHorizontally();
@@ -482,11 +516,11 @@ function buildMedium(data,images){
   spacer(body,10);
 
   const c=body.addStack(); c.layoutVertically(); c.size=new Size(122,0);
-  txt(c,'⚽ GOALS',7.1,'bold','#FFFFFF',.86);
+  txt(c,'⚽ 得点',7.4,'bold','#FFFFFF',.92);
   const gl=goalLines(data);
   (gl.length?gl:['—']).forEach(x=>txt(c,compact(x,17),8.0,'semibold','#FFFFFF',gl.length?.96:.55));
   spacer(c,3);
-  txt(c,'🎯 ASSISTS',7.1,'bold','#FFFFFF',.86);
+  txt(c,'🎯 アシスト',7.4,'bold','#FFFFFF',.92);
   const al=assistLines(data);
   (al.length?al:['—']).forEach(x=>txt(c,compact(x,17),8.0,'semibold','#FFFFFF',al.length?.96:.55));
 
@@ -494,10 +528,10 @@ function buildMedium(data,images){
 
   const f=root.addStack(); f.layoutHorizontally(); f.centerAlignContent();
   f.setPadding(4,7,4,7); f.cornerRadius=9; f.backgroundColor=C('#07101C',.58);
-  txt(f,'NEXT',6.6,'heavy','#F3C75B'); spacer(f,7);
+  txt(f,'次戦',6.9,'heavy','#F3C75B'); spacer(f,7);
   if(data.next){
     txt(f,'vs '+compact(data.next.opponent,20),8.2,'semibold');
-    f.addSpacer(); txt(f,fmtDate(data.next.date,true)+' · '+data.next.competition,6.7,'medium','#D2D7E1',.82);
+    f.addSpacer(); txt(f,fmtDate(data.next.date,true)+' / '+data.next.competition,6.7,'medium','#D2D7E1',.82);
   }else txt(f,'次戦データなし',7.5,'medium','#D2D7E1',.78);
 
   w.refreshAfterDate=new Date(Date.now()+CP.refreshMs);
@@ -524,7 +558,7 @@ function makeLargeBackground(hero){
     ctx.drawImageInRect(hero,new Rect(x,y,dw,dh));
   }
 
-  ctx.setFillColor(C('#02050A',.18));
+  ctx.setFillColor(C('#02050A',.26));
   ctx.fillRect(new Rect(0,0,W,H));
   return ctx.getImage();
 }
@@ -585,7 +619,7 @@ function buildLarge(data,images){
   const sl=score.addStack();
   sl.layoutVertically();
   txt(sl,compact(data.fixture.opponent,22),10,'semibold','#F0F2F6',.96);
-  txt(sl,(data.fixture.home?'HOME':'AWAY')+' · '+fmtDate(data.fixture.date),7,'medium','#BBC2CF',.74);
+  txt(sl,(data.fixture.home?'ホーム':'アウェイ')+' · '+fmtDate(data.fixture.date),7.4,'medium','#BBC2CF',.84);
   score.addSpacer();
   txt(score,String(data.fixture.ours)+' - '+String(data.fixture.theirs),31,'heavy');
 
@@ -597,16 +631,16 @@ function buildLarge(data,images){
   const ratings=info.addStack();
   ratings.layoutVertically();
   ratings.size=new Size(176,0);
-  txt(ratings,'★ TOP RATED',7.2,'bold','#F3C75B');
+  txt(ratings,'★ 評価TOP3',7.7,'bold','#F3C75B');
   spacer(ratings,3);
   data.top3.forEach((p,i)=>{
     const r=ratings.addStack();
     r.layoutHorizontally();
     txt(r,String(i+1),7.5,'heavy',i===0?'#F3C75B':'#C4CAD4');
     spacer(r,7);
-    txt(r,compact(displayPlayerName(p.name),15),9,i===0?'bold':'semibold','#FFFFFF',i===0?1:.90);
+    txt(r,compact(displayPlayerName(p.name),15),9.5,i===0?'bold':'semibold','#FFFFFF',i===0?1:.94);
     r.addSpacer();
-    txt(r,p.rating.toFixed(1),8.8,'heavy',i===0?'#F3C75B':'#FFFFFF',i===0?1:.88);
+    txt(r,p.rating.toFixed(1),9.3,'heavy',i===0?'#F3C75B':'#FFFFFF',i===0?1:.94);
     spacer(ratings,2);
   });
 
@@ -618,14 +652,17 @@ function buildLarge(data,images){
 
   const contrib=info.addStack();
   contrib.layoutVertically();
-  contrib.size=new Size(166,0);
-  txt(contrib,'⚽ GOALS',8.6,'bold','#FFFFFF',.94);
+  contrib.size=new Size(174,0);
+  contrib.setPadding(6,8,6,8);
+  contrib.cornerRadius=10;
+  contrib.backgroundColor=C('#02060D',.72);
+  txt(contrib,'⚽ 得点',9.1,'bold','#FFFFFF',.98);
   const gl=goalLines(data);
-  (gl.length?gl:['—']).forEach(x=>txt(contrib,compact(x,21),9.8,'semibold','#FFFFFF',gl.length?.99:.55));
-  spacer(contrib,6);
-  txt(contrib,'🎯 ASSISTS',8.6,'bold','#FFFFFF',.94);
+  (gl.length?gl:['—']).forEach(x=>txt(contrib,compact(x,22),10.2,'semibold','#FFFFFF',gl.length?1:.58));
+  spacer(contrib,7);
+  txt(contrib,'🎯 アシスト',9.1,'bold','#FFFFFF',.98);
   const al=assistLines(data);
-  (al.length?al:['—']).forEach(x=>txt(contrib,compact(x,21),9.8,'semibold','#FFFFFF',al.length?.99:.55));
+  (al.length?al:['—']).forEach(x=>txt(contrib,compact(x,22),10.2,'semibold','#FFFFFF',al.length?1:.58));
 
   root.addSpacer(4);
 
@@ -650,7 +687,7 @@ function buildLarge(data,images){
   const form=root.addStack();
   form.layoutHorizontally();
   form.centerAlignContent();
-  txt(form,'RECENT 5',6.8,'heavy','#B7BEC9',.80);
+  txt(form,'直近5試合',7.2,'heavy','#C5CBD5',.88);
   spacer(form,7);
   const ff=(data.form||[]).slice(0,5);
   if(ff.length){
@@ -670,12 +707,12 @@ function buildLarge(data,images){
   f.setPadding(6,9,6,9);
   f.cornerRadius=11;
   f.backgroundColor=C('#07101C',.76);
-  txt(f,'NEXT',7.0,'heavy','#F3C75B');
+  txt(f,'次戦',7.3,'heavy','#F3C75B');
   spacer(f,8);
   if(data.next){
     txt(f,'vs '+compact(data.next.opponent,21),9.2,'semibold');
     f.addSpacer();
-    txt(f,fmtDate(data.next.date,true)+' · '+data.next.competition,7,'medium','#D2D7E1',.82);
+    txt(f,fmtDate(data.next.date,true)+' / '+data.next.competition,7.3,'medium','#E0E4EB',.90);
   }else{
     txt(f,'次戦データなし',8,'medium','#D2D7E1',.78);
   }
