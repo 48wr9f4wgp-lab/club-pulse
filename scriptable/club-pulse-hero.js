@@ -338,6 +338,13 @@ function compact(s,max=18){
   return s.length>max?s.slice(0,max-1)+'…':s;
 }
 
+function displayPlayerName(name){
+  const n=String(name||'—').trim();
+  const parts=n.split(/\s+/);
+  if(parts.length<=1)return n;
+  return parts[parts.length-1];
+}
+
 function txt(parent,value,size,weight='medium',color='#FFFFFF',alpha=1){
   const t=parent.addText(String(value));
   t.font=weight==='heavy'?Font.heavySystemFont(size):
@@ -360,24 +367,26 @@ function resultChip(parent,result){
 
 function makeBackground(hero){
   const W=720,H=338;
-  const c=new DrawContext();
-  c.size=new Size(W,H);
-  c.opaque=true;
-  c.respectScreenScale=true;
-  c.setFillColor(C('#06080D')); c.fillRect(new Rect(0,0,W,H));
+  const ctx=new DrawContext();
+  ctx.size=new Size(W,H);
+  ctx.opaque=true;
+  ctx.respectScreenScale=true;
+  ctx.setFillColor(C('#06080D'));
+  ctx.fillRect(new Rect(0,0,W,H));
+
   if(hero){
-    const iw=hero.size.width||W, ih=hero.size.height||H;
-    const scale=Math.max((W*.64)/iw,H/ih);
-    const dw=iw*scale,dh=ih*scale;
-    c.drawImageInRect(hero,new Rect(W-dw+28,(H-dh)/2,dw,dh));
+    const iw=hero.size.width||1, ih=hero.size.height||1;
+    const targetW=300, targetH=320;
+    const scale=Math.min(targetW/iw,targetH/ih);
+    const dw=iw*scale, dh=ih*scale;
+    const x=W-dw-18;
+    const y=(H-dh)/2+6;
+    ctx.drawImageInRect(hero,new Rect(x,y,dw,dh));
   }
-  c.setFillColor(C('#02050A',.25)); c.fillRect(new Rect(0,0,W,H));
-  for(let i=0;i<36;i++){
-    const t=i/35;
-    c.setFillColor(C('#02050A',.92*(1-t)));
-    c.fillRect(new Rect(i*(W/36),0,W/36+2,H));
-  }
-  return c.getImage();
+
+  ctx.setFillColor(C('#02050A',.16));
+  ctx.fillRect(new Rect(0,0,W,H));
+  return ctx.getImage();
 }
 
 function goalLines(data){
@@ -399,7 +408,18 @@ function buildMedium(data,images){
   const root=w.addStack();
   root.layoutVertically();
   root.setPadding(10,12,9,12);
-  root.backgroundColor=C('#02050A',.30);
+
+  const overlay=new LinearGradient();
+  overlay.startPoint=new Point(0,0.5);
+  overlay.endPoint=new Point(1,0.5);
+  overlay.colors=[
+    C('#02050A',.96),
+    C('#02050A',.86),
+    C('#02050A',.52),
+    C('#02050A',.18)
+  ];
+  overlay.locations=[0,.44,.72,1];
+  root.backgroundGradient=overlay;
 
   const h=root.addStack(); h.layoutHorizontally(); h.centerAlignContent();
   if(images.crest){const im=h.addImage(images.crest);im.imageSize=new Size(22,22);}
@@ -418,13 +438,13 @@ function buildMedium(data,images){
   spacer(root,7);
   const body=root.addStack(); body.layoutHorizontally();
 
-  const ratings=body.addStack(); ratings.layoutVertically(); ratings.size=new Size(176,0);
+  const ratings=body.addStack(); ratings.layoutVertically(); ratings.size=new Size(158,0);
   txt(ratings,'★ TOP RATED',6.8,'bold','#F3C75B');
   spacer(ratings,2);
   data.top3.forEach((p,i)=>{
     const r=ratings.addStack(); r.layoutHorizontally();
     txt(r,String(i+1),7.2,'heavy',i===0?'#F3C75B':'#BFC5D0');
-    spacer(r,6); txt(r,compact(p.name,16),8.1,i===0?'bold':'semibold','#FFFFFF',i===0?1:.88);
+    spacer(r,6); txt(r,compact(displayPlayerName(p.name),14),8.4,i===0?'bold':'semibold','#FFFFFF',i===0?1:.90);
     r.addSpacer(); txt(r,p.rating.toFixed(1),8.2,'heavy',i===0?'#F3C75B':'#FFFFFF',i===0?1:.88);
     spacer(ratings,1);
   });
@@ -433,14 +453,14 @@ function buildMedium(data,images){
   const v=body.addStack(); v.size=new Size(1,72); v.backgroundColor=C('#FFFFFF',.16);
   spacer(body,10);
 
-  const c=body.addStack(); c.layoutVertically(); c.size=new Size(145,0);
-  txt(c,'⚽ GOALS',6.8,'bold','#FFFFFF',.82);
+  const c=body.addStack(); c.layoutVertically(); c.size=new Size(122,0);
+  txt(c,'⚽ GOALS',7.1,'bold','#FFFFFF',.86);
   const gl=goalLines(data);
-  (gl.length?gl:['—']).forEach(x=>txt(c,compact(x,20),7.6,'semibold','#FFFFFF',gl.length?.95:.55));
+  (gl.length?gl:['—']).forEach(x=>txt(c,compact(x,17),8.0,'semibold','#FFFFFF',gl.length?.96:.55));
   spacer(c,3);
-  txt(c,'🎯 ASSISTS',6.8,'bold','#FFFFFF',.82);
+  txt(c,'🎯 ASSISTS',7.1,'bold','#FFFFFF',.86);
   const al=assistLines(data);
-  (al.length?al:['—']).forEach(x=>txt(c,compact(x,20),7.6,'semibold','#FFFFFF',al.length?.95:.55));
+  (al.length?al:['—']).forEach(x=>txt(c,compact(x,17),8.0,'semibold','#FFFFFF',al.length?.96:.55));
 
   root.addSpacer();
 
