@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.37
+// Club Pulse Hero Prototype v0.38
 // Real Madrid post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -10,6 +10,9 @@ const CP = {
   base: 'https://www.fotmob.com/api/data',
   imageBase: 'https://images.fotmob.com/image_resources',
   cacheTtlMs: 60 * 60 * 1000,
+  cacheNearMatchMs: 10 * 60 * 1000,
+  cacheMatchDayMs: 15 * 60 * 1000,
+  cacheStaleRetryMs: 5 * 60 * 1000,
   refreshMs: 5 * 60 * 1000,
 };
 
@@ -82,23 +85,72 @@ function fixtureTime(m){
 function finished(m){ return m?.status?.finished === true; }
 function cancelled(m){ return m?.status?.cancelled === true; }
 
+function fixtureBelongsToClub(m){
+  return Number(m?.home?.id)===CP.teamId || Number(m?.away?.id)===CP.teamId;
+}
+
+function fixtureStarted(m){
+  const s=m?.status||{};
+  if(s.started===true || s.ongoing===true || s.live===true) return true;
+  const text=String(s.reason||s.status||s.short||'').toLowerCase();
+  return text.includes('live') || text.includes('progress');
+}
+
+function validLastFixture(m){
+  if(!m || !fixtureBelongsToClub(m) || !finished(m) || cancelled(m)) return false;
+  const t=new Date(fixtureTime(m)||0).getTime();
+  return Number.isFinite(t) && t>0 && t<=Date.now()+10*60*1000;
+}
+
+function validNextFixture(m){
+  if(!m || !fixtureBelongsToClub(m) || finished(m) || cancelled(m) || fixtureStarted(m)) return false;
+  const t=new Date(fixtureTime(m)||0).getTime();
+  return Number.isFinite(t) && t>0 && t>Date.now()-5*60*1000;
+}
+
+function cacheTtlFor(cache){
+  if(!cache?.fetchedAt) return 0;
+  if(cache?.stale) return CP.cacheStaleRetryMs;
+
+  const now=Date.now();
+  const candidates=[
+    cache?.fixture?.date,
+    cache?.next?.date
+  ]
+    .map(x=>new Date(x||0).getTime())
+    .filter(x=>Number.isFinite(x)&&x>0)
+    .map(x=>Math.abs(x-now));
+
+  if(!candidates.length) return CP.cacheTtlMs;
+
+  const nearest=Math.min(...candidates);
+
+  if(nearest<=6*60*60*1000) return CP.cacheNearMatchMs;
+  if(nearest<=24*60*60*1000) return CP.cacheMatchDayMs;
+  return CP.cacheTtlMs;
+}
+
 function pickLast(team){
-  return team?.fixtures?.allFixtures?.lastMatch ||
-    allFixtures(team)
-      .filter(x => finished(x) && !cancelled(x))
-      .sort((a,b) => new Date(fixtureTime(b)||0) - new Date(fixtureTime(a)||0))[0] || null;
+  const preferred=team?.fixtures?.allFixtures?.lastMatch;
+  if(validLastFixture(preferred)) return preferred;
+
+  return allFixtures(team)
+    .filter(validLastFixture)
+    .sort((a,b)=>new Date(fixtureTime(b)||0)-new Date(fixtureTime(a)||0))[0] || null;
 }
 
 function pickNext(team){
-  return team?.fixtures?.allFixtures?.nextMatch ||
-    allFixtures(team)
-      .filter(x => !finished(x) && !cancelled(x) && new Date(fixtureTime(x)||0).getTime() > Date.now()-5*60*1000)
-      .sort((a,b) => new Date(fixtureTime(a)||0) - new Date(fixtureTime(b)||0))[0] || null;
+  const preferred=team?.fixtures?.allFixtures?.nextMatch;
+  if(validNextFixture(preferred)) return preferred;
+
+  return allFixtures(team)
+    .filter(validNextFixture)
+    .sort((a,b)=>new Date(fixtureTime(a)||0)-new Date(fixtureTime(b)||0))[0] || null;
 }
 
 function teamSide(m){
-  const h = m?.home?.id === CP.teamId;
-  const a = m?.away?.id === CP.teamId;
+  const h = Number(m?.home?.id) === CP.teamId;
+  const a = Number(m?.away?.id) === CP.teamId;
   if(h) return {home:true, ours:m.home, opp:m.away};
   if(a) return {home:false, ours:m.away, opp:m.home};
   return {home:null, ours:null, opp:null};
@@ -223,14 +275,18 @@ function ratingOf(o){
 }
 
 function findTeamLineup(detail){
-  const l = detail?.content?.lineup;
-  const lines = Array.isArray(l?.lineups) ? l.lineups : [];
-  let block = lines.find(x => Number(x?.teamId) === CP.teamId);
+  const l=detail?.content?.lineup;
+  const lines=Array.isArray(l?.lineups)?l.lineups:[];
+  const block=lines.find(x=>Number(x?.teamId)===CP.teamId);
   if(block) return block;
 
-  const hId = detail?.general?.homeTeam?.id ?? detail?.header?.teams?.[0]?.id;
-  if(Number(hId) === CP.teamId) return l?.homeTeam || l?.home || lines[0] || l;
-  return l?.awayTeam || l?.away || lines[1] || l;
+  const hId=detail?.general?.homeTeam?.id ?? detail?.header?.teams?.[0]?.id;
+  const aId=detail?.general?.awayTeam?.id ?? detail?.header?.teams?.[1]?.id;
+
+  if(Number(hId)===CP.teamId) return l?.homeTeam || l?.home || lines[0] || null;
+  if(Number(aId)===CP.teamId) return l?.awayTeam || l?.away || lines[1] || null;
+
+  return null;
 }
 
 function collectRatedPlayers(detail){
@@ -291,14 +347,39 @@ function eventArray(detail){
 
 function isOurEvent(e,isHome){
   if(typeof e?.isHome === 'boolean') return e.isHome === isHome;
-  const tid = e?.teamId ?? e?.team?.id;
-  return tid != null ? Number(tid) === CP.teamId : false;
+  const tid=e?.teamId ?? e?.team?.id;
+  return tid!=null ? Number(tid)===CP.teamId : false;
+}
+
+function validGoalEvent(e){
+  if(!e || typeof e!=='object') return false;
+  if(e.cancelled===true || e.isCancelled===true || e.disallowed===true || e.isDisallowed===true) return false;
+
+  const type=String(e.type||'')
+    .toLowerCase()
+    .replace(/[\s_-]/g,'');
+
+  if(
+    type.includes('cancel') ||
+    type.includes('disallow') ||
+    type.includes('miss')
+  ) return false;
+
+  if(e.isGoal===true) return true;
+
+  return (
+    type==='goal' ||
+    type==='penaltygoal' ||
+    type==='goalpenalty' ||
+    type==='owngoal' ||
+    type.endsWith('goal')
+  );
 }
 
 function goalData(detail,isHome){
   const out=[];
   for(const e of eventArray(detail)){
-    if(!/goal/i.test(String(e?.type||''))) continue;
+    if(!validGoalEvent(e)) continue;
     if(!isOurEvent(e,isHome)) continue;
     const scorer = playerName(e?.player || e) || e?.playerName || '—';
     const assist =
@@ -335,7 +416,8 @@ function opponentFromDetail(detail,fixture){
 
 async function fetchData(force=false){
   const cache=readJSON(dataPath);
-  if(!force && cache?.fetchedAt && Date.now()-cache.fetchedAt<CP.cacheTtlMs) return cache;
+  const ttl=cacheTtlFor(cache);
+  if(!force && cache?.fetchedAt && Date.now()-cache.fetchedAt<ttl) return cache;
 
   try{
     const team=await getJSON('/teams?id='+CP.teamId+'&ccode3=JPN');
@@ -419,6 +501,15 @@ function txtLarge(parent,value,size,weight='semibold',color='#FFFFFF',alpha=1){
   const t=txt(parent,value,size,weight,color,alpha);
   t.minimumScaleFactor=.84;
   return t;
+}
+
+function staleBadge(parent,data,size=7){
+  if(!data?.stale) return;
+  const p=parent.addStack();
+  p.setPadding(2,5,2,5);
+  p.cornerRadius=6;
+  p.backgroundColor=C('#6B4516',.92);
+  txt(p,'更新待ち',size,'heavy','#FFD38A',1);
 }
 
 function resultChip(parent,result){
@@ -554,6 +645,8 @@ function buildSmall(data,images){
   spacer(h,5);
   txtSmall(h,'レアル',10.4,'heavy','#FFFFFF',1);
   h.addSpacer();
+  staleBadge(h,data,5.8);
+  if(data?.stale) spacer(h,3);
   resultChipSmall(h,data.fixture.result);
 
   spacer(root,6);
@@ -602,7 +695,7 @@ function buildSmall(data,images){
 
   left.addSpacer(4);
 
-  txtSmall(left,'MVP',6.9,'heavy',UI.accent,1);
+  txtSmall(left,'最高評価',6.2,'heavy',UI.accent,1);
   spacer(left,1);
 
   const mvp=left.addStack();
@@ -712,6 +805,8 @@ function buildMedium(data,images){
 
   top.addSpacer();
 
+  staleBadge(top,data,6.0);
+  if(data?.stale) spacer(top,4);
   resultChip(top,data.fixture.result);
   spacer(top,6);
 
@@ -844,7 +939,7 @@ function buildMedium(data,images){
   mvp.borderWidth=1;
   mvp.borderColor=C(UI.borderSoft,.70);
 
-  txtMedium(mvp,'MVP',6.2,'heavy',UI.accent,1);
+  txtMedium(mvp,'最高評価',5.6,'heavy',UI.accent,1);
   spacer(mvp,3);
   txtMedium(mvp,compact(displayPlayerName(data.hero?.name),8),7.8,'bold',UI.text,1);
   spacer(mvp,3);
@@ -986,6 +1081,8 @@ function buildLarge(data,images){
   spacer(h,8);
   txtLarge(h,data.fixture.competition,10.2,'bold','#FFFFFF',.96);
   h.addSpacer();
+  staleBadge(h,data,7.0);
+  if(data?.stale) spacer(h,5);
   resultChip(h,data.fixture.result);
 
   spacer(root,7);
@@ -1161,7 +1258,7 @@ function buildLarge(data,images){
   heroCard.borderWidth=1;
   heroCard.borderColor=C(UI.borderSoft,.70);
 
-  txtLarge(heroCard,'MVP',8.2,'heavy',UI.accent,1);
+  txtLarge(heroCard,'最高評価',7.2,'heavy',UI.accent,1);
   spacer(heroCard,5);
   txtLarge(heroCard,compact(displayPlayerName(data.hero?.name),10),11.2,'bold',UI.text,1);
   spacer(heroCard,4);
