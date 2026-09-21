@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.50
+// Club Pulse Hero Prototype v0.51
 // Multi-club post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -933,20 +933,56 @@ function validGoalEvent(e){
   );
 }
 
+function stripGoalCountSuffix(name){
+  const raw=String(name||'').trim();
+  if(!raw) return '';
+
+  // FotMob can expose repeated scorer labels as "Musiala ×2", "Musiala ×3".
+  // The suffix is a count marker, not part of the player's name.
+  return raw
+    .replace(/\s*(?:[×xX]\s*\d+|\(\d+\))\s*$/,'')
+    .trim();
+}
+
 function goalData(detail,isHome){
   const out=[];
   for(const e of eventArray(detail)){
     if(!validGoalEvent(e)) continue;
     if(!isOurEvent(e,isHome)) continue;
-    const scorer = playerName(e?.player || e) || e?.playerName || '—';
+
+    const scorerObj=e?.player || e;
+    const rawScorer=
+      playerName(scorerObj) ||
+      e?.playerName ||
+      e?.scorerName ||
+      '—';
+    const scorer=stripGoalCountSuffix(rawScorer) || '—';
+    const scorerId=
+      playerId(scorerObj) ??
+      e?.scorerId ??
+      e?.scorer?.id ??
+      null;
+
+    const assistObj=e?.assist || e?.assistPlayer || null;
     const assist =
-      playerName(e?.assist) ||
-      playerName(e?.assistPlayer) ||
+      playerName(assistObj) ||
       e?.assistStr ||
       e?.assistName ||
       null;
-    const minute = e?.time ?? e?.minute ?? e?.timeStr ?? null;
-    out.push({scorer,assist,minute});
+    const assistId=
+      playerId(assistObj) ??
+      e?.assistPlayerId ??
+      null;
+
+    const minute=e?.time ?? e?.minute ?? e?.timeStr ?? null;
+
+    out.push({
+      scorer,
+      scorerId: scorerId!=null ? Number(scorerId) : null,
+      assist,
+      assistId: assistId!=null ? Number(assistId) : null,
+      minute
+    });
   }
   return out;
 }
@@ -1130,12 +1166,33 @@ function makeBackground(hero){
 }
 
 function goalLines(data){
-  const counts={};
+  const grouped=new Map();
+
   for(const g of data.goals||[]){
-    const n=displayPlayerName(g.scorer);
-    counts[n]=(counts[n]||0)+1;
+    const raw=stripGoalCountSuffix(g?.scorer);
+    if(!raw || /^[×xX]\s*\d+$/.test(raw)) continue;
+
+    const label=displayPlayerName(raw);
+    const id=g?.scorerId;
+    const key=id!=null
+      ? 'id:'+String(id)
+      : 'name:'+playerKey(raw);
+
+    const old=grouped.get(key);
+    if(old){
+      old.count+=1;
+      // Prefer a real translated/name label over a placeholder.
+      if((old.label==='—' || /^[×xX]\s*\d+$/.test(old.label)) && label!=='—'){
+        old.label=label;
+      }
+    }else{
+      grouped.set(key,{label,count:1});
+    }
   }
-  return Object.entries(counts).slice(0,3).map(([n,c])=>n+(c>1?' ×'+c:''));
+
+  return [...grouped.values()]
+    .slice(0,3)
+    .map(x=>x.label+(x.count>1?' ×'+x.count:''));
 }
 function cleanAssistName(name){
   return String(name||'')
