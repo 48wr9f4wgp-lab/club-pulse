@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.53
+// Club Pulse Hero Prototype v0.54
 // Multi-club post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -255,7 +255,7 @@ function buildDiagnostics(data){
   root.layoutVertically();
 
   txtLarge(root,'CLUB PULSE 診断 · '+CP.smallName,14,'heavy',UI.text,1);
-  txtLarge(root,'runtime v0.53',7.6,'semibold',UI.sub,.72);
+  txtLarge(root,'runtime v0.54',7.6,'semibold',UI.sub,.72);
   spacer(root,5);
 
   const head=root.addStack();
@@ -1166,7 +1166,7 @@ function makeBackground(hero){
   return ctx.getImage();
 }
 
-function goalLines(data){
+function goalSummary(data){
   const grouped=new Map();
 
   for(const g of data.goals||[]){
@@ -1194,9 +1194,33 @@ function goalLines(data){
     }
   }
 
-  return [...grouped.values()]
-    .slice(0,3)
-    .map(x=>x.label+(x.count>1?' ×'+x.count:''));
+  const entries=[...grouped.values()];
+  const eventGoals=entries.reduce((sum,x)=>sum+x.count,0);
+  const finalGoals=Number(data?.fixture?.ours);
+  const missingGoals=Number.isFinite(finalGoals)
+    ? Math.max(0,finalGoals-eventGoals)
+    : 0;
+
+  return {entries,eventGoals,finalGoals,missingGoals};
+}
+
+function goalLines(data,maxNamed=3){
+  const s=goalSummary(data);
+  const shown=s.entries.slice(0,maxNamed);
+  const hidden=s.entries.slice(maxNamed);
+
+  const hiddenGoals=hidden.reduce((sum,x)=>sum+x.count,0);
+  const otherGoals=hiddenGoals+s.missingGoals;
+
+  const lines=shown.map(
+    x=>x.label+(x.count>1?' ×'+x.count:'')
+  );
+
+  if(otherGoals>0){
+    lines.push('他'+otherGoals+'点');
+  }
+
+  return lines;
 }
 function cleanAssistName(name){
   return String(name||'')
@@ -1513,7 +1537,7 @@ function buildMedium(data,images){
   // goalLines / assistLines already return display-ready localized strings.
   // Do not pass them through displayPlayerName again, or "ムシアラ ×3"
   // would be reduced to the last token "×3".
-  const gl=goalLines(data);
+  const gl=goalLines(data,3);
   const al=assistLines(data);
 
   const mediumGoalText=gl.length
@@ -1792,7 +1816,7 @@ function buildLarge(data,images){
     spacer(left,denseNames?1:2);
   });
 
-  const gl=goalLines(data);
+  const gl=goalLines(data,3);
   const al=assistLines(data);
   const denseContrib=
     (gl.length + al.length >= 5) ||
