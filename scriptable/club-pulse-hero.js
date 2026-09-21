@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.49
+// Club Pulse Hero Prototype v0.50
 // Multi-club post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -573,6 +573,202 @@ function jpTeamName(name){
   return map[n]||n||'—';
 }
 
+const PLAYER_JA = {
+  // Real Madrid
+  'thibaut courtois':'クルトワ','courtois':'クルトワ',
+  'andriy lunin':'ルニン','lunin':'ルニン',
+  'fran gonzalez':'フラン・ゴンサレス',
+  'raul asencio':'アセンシオ','asencio':'アセンシオ',
+  'eder militao':'ミリトン','militao':'ミリトン',
+  'dean huijsen':'ハイセン','huijsen':'ハイセン',
+  'trent alexander arnold':'アレクサンダー＝アーノルド','alexander arnold':'アレクサンダー＝アーノルド',
+  'ibrahima konate':'コナテ','konate':'コナテ',
+  'marc cucurella':'ククレジャ','cucurella':'ククレジャ',
+  'alvaro carreras':'カレーラス','carreras':'カレーラス',
+  'antonio rudiger':'リュディガー','rudiger':'リュディガー',
+  'ferland mendy':'メンディ',
+  'jude bellingham':'ベリンガム','bellingham':'ベリンガム',
+  'eduardo camavinga':'カマヴィンガ','camavinga':'カマヴィンガ',
+  'federico valverde':'バルベルデ','valverde':'バルベルデ',
+  'aurelien tchouameni':'チュアメニ','tchouameni':'チュアメニ',
+  'arda guler':'ギュレル','guler':'ギュレル',
+  'bernardo silva':'ベルナルド・シウバ','silva':'シウバ',
+  'denzel dumfries':'ダンフリース','dumfries':'ダンフリース',
+  'thiago pitarch':'ピタルチ','pitarch':'ピタルチ',
+  'jorge cestero':'セステロ','cestero':'セステロ',
+  'vinicius junior':'ヴィニシウス','vinicius':'ヴィニシウス',
+  'kylian mbappe':'エムバペ','mbappe':'エムバペ',
+  'rodrygo':'ロドリゴ',
+  'gonzalo garcia':'ゴンサロ・ガルシア',
+  'brahim diaz':'ブラヒム',
+  'franco mastantuono':'マスタントゥオーノ','mastantuono':'マスタントゥオーノ',
+  'carlos espi':'カルロス・エスピ',
+
+  // Barcelona
+  'joan garcia':'ジョアン・ガルシア',
+  'wojciech szczesny':'シュチェスニー','szczesny':'シュチェスニー',
+  'dominik livakovic':'リヴァコヴィッチ','livakovic':'リヴァコヴィッチ',
+  'eder aller':'アジェル',
+  'joao cancelo':'カンセロ','cancelo':'カンセロ',
+  'alejandro balde':'バルデ','balde':'バルデ',
+  'pau cubarsi':'クバルシ','cubarsi':'クバルシ',
+  'andreas christensen':'クリステンセン','christensen':'クリステンセン',
+  'gerard martin':'ジェラール・マルティン',
+  'jules kounde':'クンデ','kounde':'クンデ',
+  'eric garcia':'エリック・ガルシア',
+  'brian farinas':'ファリーニャス','farinas':'ファリーニャス',
+  'gavi':'ガビ',
+  'fermin lopez':'フェルミン','fermin':'フェルミン',
+  'pedri':'ペドリ',
+  'xavi espart':'シャビ・エスパルト','espart':'エスパルト',
+  'karim adeyemi':'アデイェミ','adeyemi':'アデイェミ',
+  'rodri':'ロドリ',
+  'dani olmo':'オルモ','olmo':'オルモ',
+  'frenkie de jong':'デ・ヨング','de jong':'デ・ヨング',
+  'marc bernal':'マルク・ベルナル',
+  'gabriel jesus':'ジェズス',
+  'lamine yamal':'ヤマル','yamal':'ヤマル',
+  'raphinha':'ラフィーニャ',
+  'anthony gordon':'ゴードン','gordon':'ゴードン',
+  'roony bardghji':'バルドグジ','bardghji':'バルドグジ',
+  'jesse bisiwu':'ビシウ',
+  'hamza abdelkarim':'アブデルカリム',
+
+  // Manchester United
+  'senne lammens':'ラメンス','lammens':'ラメンス',
+  'karl darlow':'ダーロウ','darlow':'ダーロウ',
+  'tom heaton':'ヒートン','heaton':'ヒートン',
+  'dermot mee':'ミー',
+  'diogo dalot':'ダロト','dalot':'ダロト',
+  'noussair mazraoui':'マズラウィ','mazraoui':'マズラウィ',
+  'matthijs de ligt':'デ・リフト','de ligt':'デ・リフト',
+  'harry maguire':'マグワイア','maguire':'マグワイア',
+  'lisandro martinez':'リサンドロ','martinez':'マルティネス',
+  'leny yoro':'ヨロ','yoro':'ヨロ',
+  'luke shaw':'ショー','shaw':'ショー',
+  'ayden heaven':'ヘヴン','heaven':'ヘヴン',
+  'mason mount':'マウント','mount':'マウント',
+  'bruno fernandes':'ブルーノ・フェルナンデス',
+  'andrey santos':'アンドレイ・サントス',
+  'youri tielemans':'ティーレマンス','tielemans':'ティーレマンス',
+  'carlos baleba':'バレバ','baleba':'バレバ',
+  'manuel ugarte':'ウガルテ','ugarte':'ウガルテ',
+  'kobbie mainoo':'メイヌー','mainoo':'メイヌー',
+  'jack fletcher':'ジャック・フレッチャー',
+  'tyler fletcher':'タイラー・フレッチャー',
+  'harry amass':'アマス','amass':'アマス',
+  'marcus rashford':'ラッシュフォード','rashford':'ラッシュフォード',
+  'matheus cunha':'クーニャ','cunha':'クーニャ',
+  'joshua zirkzee':'ザークツィー','zirkzee':'ザークツィー',
+  'patrick dorgu':'ドルグ','dorgu':'ドルグ',
+  'amad diallo':'アマド','amad':'アマド',
+  'bryan mbeumo':'エンベウモ','mbeumo':'エンベウモ',
+  'benjamin sesko':'シェシュコ','sesko':'シェシュコ',
+  'shea lacey':'レイシー','lacey':'レイシー',
+
+  // Bayern
+  'manuel neuer':'ノイアー','neuer':'ノイアー',
+  'sven ulreich':'ウルライヒ','ulreich':'ウルライヒ',
+  'jonas urbig':'ウルビヒ','urbig':'ウルビヒ',
+  'leon klanac':'クラナツ',
+  'tarek buchmann':'ブーフマン',
+  'dayot upamecano':'ウパメカノ','upamecano':'ウパメカノ',
+  'min jae kim':'キム・ミンジェ','kim min jae':'キム・ミンジェ',
+  'jonathan tah':'ター','tah':'ター',
+  'tom bischof':'ビショフ','bischof':'ビショフ',
+  'nathaniel brown':'ブラウン',
+  'alphonso davies':'デイヴィス','davies':'デイヴィス',
+  'hiroki ito':'伊藤洋輝',
+  'sacha boey':'ボエ','boey':'ボエ',
+  'konrad laimer':'ライマー','laimer':'ライマー',
+  'cassiano kiala':'キアラ',
+  'josip stanisic':'スタニシッチ','stanisic':'スタニシッチ',
+  'joshua kimmich':'キミッヒ','kimmich':'キミッヒ',
+  'serge gnabry':'ニャブリ','gnabry':'ニャブリ',
+  'jamal musiala':'ムシアラ','musiala':'ムシアラ',
+  'ismael saibari':'サイバリ','saibari':'サイバリ',
+  'erblin osmani':'オスマニ',
+  'bara ndiaye':'ンディアイ',
+  'aleksandar pavlovic':'パヴロヴィッチ','pavlovic':'パヴロヴィッチ',
+  'david santos daiber':'ダイバー',
+  'harry kane':'ケイン','kane':'ケイン',
+  'michael olise':'オリーズ','olise':'オリーズ',
+  'luis diaz':'ルイス・ディアス',
+  'lennart karl':'レナート・カール',
+  'wisdom mike':'ウィズダム・マイク',
+  'bastian assomo':'アソモ',
+
+  // Manchester City
+  'gianluigi donnarumma':'ドンナルンマ','donnarumma':'ドンナルンマ',
+  'marcus bettinelli':'ベッティネッリ',
+  'geronimo rulli':'ルジ','rulli':'ルジ',
+  'ruben dias':'ルベン・ディアス',
+  'marc guehi':'グエイ','guehi':'グエイ',
+  'rayan ait nouri':'アイ・ヌーリ','ait nouri':'アイ・ヌーリ',
+  'vitor reis':'ヴィトール・レイス',
+  'josko gvardiol':'グヴァルディオル','gvardiol':'グヴァルディオル',
+  'matheus nunes':'マテウス・ヌネス',
+  'nico o reilly':'オライリー','o reilly':'オライリー',
+  'abdukodir khusanov':'フサノフ','khusanov':'フサノフ',
+  'rico lewis':'リコ・ルイス',
+  'josh wilson esbrand':'ウィルソン＝エスブランド',
+  'elliot anderson':'エリオット・アンダーソン',
+  'mateo kovacic':'コヴァチッチ','kovacic':'コヴァチッチ',
+  'rayan cherki':'シェルキ','cherki':'シェルキ',
+  'enzo fernandez':'エンソ・フェルナンデス','fernandez':'フェルナンデス',
+  'ayyoub bouaddi':'ブアディ','bouaddi':'ブアディ',
+  'phil foden':'フォーデン','foden':'フォーデン',
+  'iliman ndiaye':'イリマン・ンディアイ',
+  'erling haaland':'ハーランド','haaland':'ハーランド',
+  'jeremy doku':'ドク','doku':'ドク',
+  'allan':'アラン',
+  'antoine semenyo':'セメニョ','semenyo':'セメニョ',
+  'ryan mcaidoo':'マカイドゥ','mcaidoo':'マカイドゥ',
+
+  // PSG
+  'alessandro longoni':'ロンゴーニ',
+  'lucas chevalier':'シュヴァリエ','chevalier':'シュヴァリエ',
+  'matvey safonov':'サフォノフ','safonov':'サフォノフ',
+  'achraf hakimi':'ハキミ','hakimi':'ハキミ',
+  'lucas beraldo':'ベラルド','beraldo':'ベラルド',
+  'marquinhos':'マルキーニョス',
+  'ilya zabarnyi':'ザバルニー','zabarnyi':'ザバルニー',
+  'lucas digne':'ディーニュ','digne':'ディーニュ',
+  'lucas hernandez':'リュカ・エルナンデス',
+  'nuno mendes':'ヌーノ・メンデス','mendes':'メンデス',
+  'willian pacho':'パチョ','pacho':'パチョ',
+  'fabian ruiz':'ファビアン・ルイス',
+  'vitinha':'ヴィティーニャ',
+  'senny mayulu':'マユル','mayulu':'マユル',
+  'dro fernandez':'ドロ・フェルナンデス',
+  'warren zaire emery':'ザイール＝エメリ','zaire emery':'ザイール＝エメリ',
+  'quentin ndjantou':'ンジャントゥ',
+  'joao neves':'ジョアン・ネヴェス','neves':'ネヴェス',
+  'khvicha kvaratskhelia':'クヴァラツヘリア','kvaratskhelia':'クヴァラツヘリア',
+  'ferran torres':'フェラン・トーレス',
+  'ousmane dembele':'デンベレ','dembele':'デンベレ',
+  'maghnes akliouche':'アクリウシュ','akliouche':'アクリウシュ',
+  'desire doue':'ドゥエ','doue':'ドゥエ',
+  'mika godts':'ゴッツ','godts':'ゴッツ',
+};
+
+function playerKey(name){
+  let s=String(name||'').trim();
+  try{s=s.normalize('NFD');}catch{}
+  return s
+    .replace(/[\u0300-\u036f]/g,'')
+    .replace(/ß/g,'ss')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g,' ')
+    .trim();
+}
+
+function jpPlayerName(name){
+  const raw=String(name||'').trim();
+  if(!raw) return '—';
+  return PLAYER_JA[playerKey(raw)] || raw;
+}
+
 function normalizeDisplayData(data){
   if(!data||typeof data!=='object') return data;
   const out={...data};
@@ -860,9 +1056,14 @@ function clubTitleSize(family){
 
 function displayPlayerName(name){
   const n=String(name||'—').trim();
+  const jp=jpPlayerName(n);
+  if(jp!==n) return jp;
+
   const parts=n.split(/\s+/);
-  if(parts.length<=1)return n;
-  return parts[parts.length-1];
+  if(parts.length<=1) return jpPlayerName(n);
+
+  const last=parts[parts.length-1];
+  return jpPlayerName(last);
 }
 
 function txt(parent,value,size,weight='medium',color='#FFFFFF',alpha=1){
@@ -930,7 +1131,10 @@ function makeBackground(hero){
 
 function goalLines(data){
   const counts={};
-  for(const g of data.goals||[]) counts[g.scorer]=(counts[g.scorer]||0)+1;
+  for(const g of data.goals||[]){
+    const n=displayPlayerName(g.scorer);
+    counts[n]=(counts[n]||0)+1;
+  }
   return Object.entries(counts).slice(0,3).map(([n,c])=>n+(c>1?' ×'+c:''));
 }
 function cleanAssistName(name){
@@ -943,7 +1147,8 @@ function cleanAssistName(name){
 function assistLines(data){
   const a=[];
   for(const g of data.goals||[]){
-    const n=cleanAssistName(g.assist);
+    const raw=cleanAssistName(g.assist);
+    const n=raw?displayPlayerName(raw):'';
     if(n&&!a.includes(n))a.push(n);
   }
   return a.slice(0,3);
@@ -965,11 +1170,8 @@ function makeSmallHeroPanel(hero){
   const W=72,H=84;
   const ctx=new DrawContext();
   ctx.size=new Size(W,H);
-  ctx.opaque=true;
+  ctx.opaque=false;
   ctx.respectScreenScale=false;
-
-  ctx.setFillColor(C('#0D1320'));
-  ctx.fillRect(new Rect(0,0,W,H));
 
   if(hero){
     const iw=hero.size.width||1, ih=hero.size.height||1;
@@ -1121,14 +1323,11 @@ function buildSmall(data,images){
 }
 
 function makeMediumHeroPanel(hero){
-  const W=88,H=96;
+  const W=86,H=64;
   const ctx=new DrawContext();
   ctx.size=new Size(W,H);
-  ctx.opaque=true;
+  ctx.opaque=false;
   ctx.respectScreenScale=false;
-
-  ctx.setFillColor(C('#0D1320'));
-  ctx.fillRect(new Rect(0,0,W,H));
 
   if(hero){
     const iw=hero.size.width||1, ih=hero.size.height||1;
@@ -1289,8 +1488,8 @@ function buildMedium(data,images){
 
   if(images.hero){
     const hi=hero.addImage(makeMediumHeroPanel(images.hero));
-    hi.imageSize=new Size(82,64);
-    hi.cornerRadius=10;
+    hi.imageSize=new Size(86,64);
+    hi.cornerRadius=11;
   }else{
     const ph=hero.addStack();
     ph.size=new Size(86,68);
@@ -1379,11 +1578,8 @@ function makeHeroPanel(hero){
   const W=132,H=132;
   const ctx=new DrawContext();
   ctx.size=new Size(W,H);
-  ctx.opaque=true;
+  ctx.opaque=false;
   ctx.respectScreenScale=false;
-
-  ctx.setFillColor(C('#0D1320'));
-  ctx.fillRect(new Rect(0,0,W,H));
 
   if(hero){
     const iw=hero.size.width||1, ih=hero.size.height||1;
@@ -1393,10 +1589,6 @@ function makeHeroPanel(hero){
     const y=(H-dh)/2+4;
     ctx.drawImageInRect(hero,new Rect(x,y,dw,dh));
   }
-
-  // subtle bottom shade without unsupported DrawContext gradients
-  ctx.setFillColor(C('#02050A',.18));
-  ctx.fillRect(new Rect(0,H-24,W,24));
 
   return ctx.getImage();
 }
