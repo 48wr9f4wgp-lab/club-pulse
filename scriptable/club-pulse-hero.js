@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.46
+// Club Pulse Hero Prototype v0.47
 // Multi-club post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -550,6 +550,15 @@ function jpTeamName(name){
     'West Ham':'ウェストハム',
     'West Ham United':'ウェストハム',
     'Crystal Palace':'クリスタル・パレス',
+    'Sunderland':'サンダーランド',
+    'Sunderland AFC':'サンダーランド',
+    'Fulham':'フラム',
+    'Fulham FC':'フラム',
+    'Union Berlin':'ウニオン・ベルリン',
+    '1. FC Union Berlin':'ウニオン・ベルリン',
+    'Le Mans':'ル・マン',
+    'Le Mans FC':'ル・マン',
+    'Augsburg':'アウクスブルク',
     'Borussia Dortmund':'ドルトムント',
     'RB Leipzig':'ライプツィヒ',
     'Bayer Leverkusen':'レヴァークーゼン',
@@ -1282,7 +1291,7 @@ function buildMedium(data,images){
   // RIGHT Hero area fills the remaining card width.
   const hero=body.addStack();
   hero.layoutVertically();
-  hero.centerAlignContent();
+  hero.topAlignContent();
   hero.size=new Size(92,84);
 
   if(images.hero){
@@ -1294,7 +1303,7 @@ function buildMedium(data,images){
     heroFrame.borderColor=C(UI.accent2,.78);
 
     const hi=heroFrame.addImage(makeMediumHeroPanel(images.hero));
-    hi.imageSize=new Size(82,64);
+    hi.imageSize=new Size(80,61);
     hi.cornerRadius=9;
   }else{
     const ph=hero.addStack();
@@ -1305,7 +1314,7 @@ function buildMedium(data,images){
     txtMedium(ph,'HERO',8,'heavy',UI.text,.70);
   }
 
-  spacer(hero,3);
+  spacer(hero,2);
 
   const mvp=hero.addStack();
   mvp.layoutHorizontally();
