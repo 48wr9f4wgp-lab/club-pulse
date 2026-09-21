@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.41
+// Club Pulse Hero Prototype v0.42
 // Multi-club post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -428,8 +428,9 @@ function compName(m){
     l.includes('carabao')
   ) return 'EFLカップ';
   if(
-    l.includes('dfb') ||
-    l.includes('pokal')
+    l.includes('dfb-pokal') ||
+    l.includes('dfb pokal') ||
+    (l.includes('pokal') && !l.includes('super'))
   ) return 'DFBポカール';
   if(l.includes('super')) return 'SUPER';
 
@@ -763,6 +764,24 @@ function compact(s,max=18){
   return s.length>max?s.slice(0,max-1)+'…':s;
 }
 
+function clubTitleSize(family){
+  const len=String(CP.clubName||'').length;
+
+  if(family==='large'){
+    if(len>=16) return 13.2;
+    if(len>=12) return 14.2;
+    return 15.5;
+  }
+
+  if(family==='medium'){
+    if(len>=16) return 9.2;
+    if(len>=12) return 10.0;
+    return 10.9;
+  }
+
+  return 10.4;
+}
+
 function displayPlayerName(name){
   const n=String(name||'—').trim();
   const parts=n.split(/\s+/);
@@ -1077,7 +1096,7 @@ function buildMedium(data,images){
 
   const title=top.addStack();
   title.layoutVertically();
-  txtMedium(title,CP.clubName,10.9,'heavy',UI.text,1);
+  txtMedium(title,CP.clubName,clubTitleSize('medium'),'heavy',UI.text,1);
   txtMedium(
     title,
     compact(data.fixture.opponent,12)+' · '+fmtDate(data.fixture.date),
@@ -1361,7 +1380,7 @@ function buildLarge(data,images){
   }
 
   spacer(h,8);
-  txtLarge(h,CP.clubName,15.5,'heavy','#FFFFFF',1);
+  txtLarge(h,CP.clubName,clubTitleSize('large'),'heavy','#FFFFFF',1);
   spacer(h,8);
   txtLarge(h,data.fixture.competition,10.2,'bold','#FFFFFF',.96);
   h.addSpacer();
