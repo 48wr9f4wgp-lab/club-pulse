@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.48
+// Club Pulse Hero Prototype v0.49
 // Multi-club post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -1104,14 +1104,9 @@ function buildSmall(data,images){
   right.centerAlignContent();
 
   if(images.hero){
-    const heroFrame=right.addStack();
-    heroFrame.setPadding(1,1,1,1);
-    heroFrame.cornerRadius=12;
-    heroFrame.backgroundColor=C(UI.accent2,.78);
-
-    const hero=heroFrame.addImage(makeSmallHeroPanel(images.hero));
-    hero.imageSize=new Size(68,80);
-    hero.cornerRadius=9;
+    const hero=right.addImage(makeSmallHeroPanel(images.hero));
+    hero.imageSize=new Size(72,84);
+    hero.cornerRadius=11;
   }else{
     const ph=right.addStack();
     ph.size=new Size(72,84);
@@ -1293,14 +1288,9 @@ function buildMedium(data,images){
   hero.size=new Size(92,84);
 
   if(images.hero){
-    const heroFrame=hero.addStack();
-    heroFrame.setPadding(1,1,1,1);
-    heroFrame.cornerRadius=11;
-    heroFrame.backgroundColor=C(UI.accent2,.78);
-
-    const hi=heroFrame.addImage(makeMediumHeroPanel(images.hero));
-    hi.imageSize=new Size(80,61);
-    hi.cornerRadius=9;
+    const hi=hero.addImage(makeMediumHeroPanel(images.hero));
+    hi.imageSize=new Size(82,64);
+    hi.cornerRadius=10;
   }else{
     const ph=hero.addStack();
     ph.size=new Size(86,68);
@@ -1610,14 +1600,9 @@ function buildLarge(data,images){
   right.centerAlignContent();
 
   if(images.hero){
-    const heroFrame=right.addStack();
-    heroFrame.setPadding(1,1,1,1);
-    heroFrame.cornerRadius=14;
-    heroFrame.backgroundColor=C(UI.accent2,.78);
-
-    const hi=heroFrame.addImage(makeHeroPanel(images.hero));
+    const hi=right.addImage(makeHeroPanel(images.hero));
     hi.imageSize=new Size(132,132);
-    hi.cornerRadius=11;
+    hi.cornerRadius=13;
   }else{
     const placeholder=right.addStack();
     placeholder.size=new Size(134,134);
