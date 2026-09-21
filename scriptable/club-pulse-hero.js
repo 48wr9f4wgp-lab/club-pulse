@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.52
+// Club Pulse Hero Prototype v0.53
 // Multi-club post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -255,7 +255,7 @@ function buildDiagnostics(data){
   root.layoutVertically();
 
   txtLarge(root,'CLUB PULSE 診断 · '+CP.smallName,14,'heavy',UI.text,1);
-  txtLarge(root,'runtime v0.52',7.6,'semibold',UI.sub,.72);
+  txtLarge(root,'runtime v0.53',7.6,'semibold',UI.sub,.72);
   spacer(root,5);
 
   const head=root.addStack();
@@ -1510,8 +1510,11 @@ function buildMedium(data,images){
 
   info.addSpacer();
 
-  const gl=goalLines(data).map(x=>displayPlayerName(x));
-  const al=assistLines(data).map(x=>displayPlayerName(x));
+  // goalLines / assistLines already return display-ready localized strings.
+  // Do not pass them through displayPlayerName again, or "ムシアラ ×3"
+  // would be reduced to the last token "×3".
+  const gl=goalLines(data);
+  const al=assistLines(data);
 
   const mediumGoalText=gl.length
     ? gl.map(x=>compact(x,13)).join(' / ')
