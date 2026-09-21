@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.38
+// Club Pulse Hero Prototype v0.39
 // Real Madrid post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -1387,6 +1387,11 @@ function applyQaScenario(data,scenario){
     d.next=null;
   }
 
+  if(key==='stale'){
+    d.stale=true;
+    d.lastError='QA simulated stale cache';
+  }
+
   return d;
 }
 
@@ -1394,7 +1399,7 @@ async function chooseQaScenario(){
   if(!config.runsInApp) return 'normal';
 
   const raw=String(args.widgetParameter||'').toLowerCase();
-  const tokens=['loss','draw','zero','noassist','hero2','long','nonext'];
+  const tokens=['loss','draw','zero','noassist','hero2','long','nonext','stale'];
   for(const t of tokens){
     if(raw.includes(t)) return t;
   }
@@ -1410,9 +1415,10 @@ async function chooseQaScenario(){
   a.addAction('Hero変更');
   a.addAction('長い名前');
   a.addAction('次戦なし');
+  a.addAction('更新待ち');
 
   const i=await a.presentSheet();
-  return ['normal','loss','draw','zero','noassist','hero2','long','nonext'][Math.max(0,i)] || 'normal';
+  return ['normal','loss','draw','zero','noassist','hero2','long','nonext','stale'][Math.max(0,i)] || 'normal';
 }
 
 async function choosePreviewFamily(){
