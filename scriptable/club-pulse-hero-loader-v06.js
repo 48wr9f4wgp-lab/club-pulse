@@ -6,7 +6,7 @@
 const REPO = '48wr9f4wgp-lab/club-pulse';
 const BRANCH = 'hero-prototype';
 const PATH = 'scriptable/club-pulse-hero.js';
-const MIN_RUNTIME = 0.53;
+const MIN_RUNTIME = 0.54;
 
 const RAW =
   'https://raw.githubusercontent.com/' +
