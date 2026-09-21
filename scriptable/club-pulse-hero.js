@@ -1,12 +1,40 @@
-// Club Pulse Hero Prototype v0.40
-// Real Madrid post-match hero widget for Scriptable.
+// Club Pulse Hero Prototype v0.41
+// Multi-club post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
 
-const CP = {
-  teamId: 8633,
-  clubName: 'レアル・マドリード',
-  clubShort: 'RMA',
+const TEAM_CONFIGS = {
+  real: {
+    teamId: 8633,
+    clubName: 'レアル・マドリード',
+    smallName: 'レアル',
+    clubShort: 'RMA',
+    storageKey: 'realmadrid',
+  },
+  barca: {
+    teamId: 8634,
+    clubName: 'FCバルセロナ',
+    smallName: 'バルサ',
+    clubShort: 'BAR',
+    storageKey: 'barcelona',
+  },
+  manu: {
+    teamId: 10260,
+    clubName: 'マンチェスター・ユナイテッド',
+    smallName: 'マンU',
+    clubShort: 'MUN',
+    storageKey: 'manu',
+  },
+  bayern: {
+    teamId: 9823,
+    clubName: 'バイエルン・ミュンヘン',
+    smallName: 'バイエルン',
+    clubShort: 'FCB',
+    storageKey: 'bayern',
+  },
+};
+
+const CP_BASE = {
   base: 'https://www.fotmob.com/api/data',
   imageBase: 'https://images.fotmob.com/image_resources',
   cacheTtlMs: 60 * 60 * 1000,
@@ -15,6 +43,9 @@ const CP = {
   cacheStaleRetryMs: 5 * 60 * 1000,
   refreshMs: 5 * 60 * 1000,
 };
+
+let activeTeamKey = 'real';
+let CP = {...CP_BASE, ...TEAM_CONFIGS.real};
 
 const UI = {
   bg: '#060910',
@@ -31,8 +62,45 @@ const UI = {
 const fm = FileManager.local();
 const dir = fm.joinPath(fm.documentsDirectory(), 'ClubPulseHeroFotMob');
 if (!fm.fileExists(dir)) fm.createDirectory(dir, true);
-const dataPath = fm.joinPath(dir, 'realmadrid_v2.json');
-const auditPath = fm.joinPath(dir, 'audit_v01.json');
+
+let dataPath = null;
+let auditPath = null;
+
+function normalizeTeamKey(value){
+  const raw=String(value||'').toLowerCase();
+
+  const aliases={
+    real:['real','rma','madrid','realmadrid'],
+    barca:['barca','barcelona','fcb'],
+    manu:['manu','manutd','manchesterunited','united','mun'],
+    bayern:['bayern','munich','bayernmunich','fcbayern'],
+  };
+
+  for(const [key,list] of Object.entries(aliases)){
+    if(list.some(x=>raw.split(/[\s,;|/]+/).includes(x))) return key;
+  }
+
+  return null;
+}
+
+function setActiveTeam(key){
+  const safe=TEAM_CONFIGS[key]?key:'real';
+  activeTeamKey=safe;
+  CP={...CP_BASE,...TEAM_CONFIGS[safe]};
+
+  // Preserve the already-verified Real Madrid cache/log filenames.
+  dataPath=fm.joinPath(
+    dir,
+    safe==='real' ? 'realmadrid_v2.json' : CP.storageKey+'_v2.json'
+  );
+
+  auditPath=fm.joinPath(
+    dir,
+    safe==='real' ? 'audit_v01.json' : 'audit_'+CP.storageKey+'_v01.json'
+  );
+}
+
+setActiveTeam('real');
 
 function C(hex, alpha=1){ return new Color(hex, alpha); }
 function spacer(p,n){ p.addSpacer(n); }
@@ -140,7 +208,7 @@ function buildDiagnostics(data){
   const root=w.addStack();
   root.layoutVertically();
 
-  txtLarge(root,'CLUB PULSE 診断',14,'heavy',UI.text,1);
+  txtLarge(root,'CLUB PULSE 診断 · '+CP.smallName,14,'heavy',UI.text,1);
   spacer(root,6);
 
   const head=root.addStack();
@@ -345,12 +413,26 @@ function resultOf(sc){
 }
 
 function compName(m){
-  const n = String(m?.league?.name || m?.tournament?.name || '');
+  const n=String(m?.league?.name || m?.tournament?.name || '');
   const l=n.toLowerCase();
+
   if(l.includes('laliga') || l.includes('la liga') || n==='ラ・リーガ') return 'ラ・リーガ';
+  if(l.includes('premier league')) return 'プレミアリーグ';
+  if(l.includes('bundesliga')) return 'ブンデスリーガ';
   if(l.includes('champions')) return 'CL';
   if(l.includes('copa del rey')) return '国王杯';
+  if(l.includes('fa cup')) return 'FAカップ';
+  if(
+    l.includes('efl cup') ||
+    l.includes('league cup') ||
+    l.includes('carabao')
+  ) return 'EFLカップ';
+  if(
+    l.includes('dfb') ||
+    l.includes('pokal')
+  ) return 'DFBポカール';
   if(l.includes('super')) return 'SUPER';
+
   return n || '公式戦';
 }
 
@@ -379,7 +461,37 @@ function jpTeamName(name){
     'Getafe':'ヘタフェ',
     'Girona':'ジローナ',
     'Mallorca':'マジョルカ',
-    'Osasuna':'オサスナ'
+    'Osasuna':'オサスナ',
+    'Real Madrid':'レアル・マドリード',
+    'Real Madrid CF':'レアル・マドリード',
+    'Bayern Munich':'バイエルン',
+    'Bayern München':'バイエルン',
+    'Manchester United':'マンチェスター・ユナイテッド',
+    'Manchester United FC':'マンチェスター・ユナイテッド',
+    'Manchester City':'マンチェスター・シティ',
+    'Arsenal':'アーセナル',
+    'Liverpool':'リヴァプール',
+    'Chelsea':'チェルシー',
+    'Tottenham':'トッテナム',
+    'Tottenham Hotspur':'トッテナム',
+    'Newcastle United':'ニューカッスル',
+    'Aston Villa':'アストン・ヴィラ',
+    'Everton':'エヴァートン',
+    'Brighton':'ブライトン',
+    'Brighton & Hove Albion':'ブライトン',
+    'West Ham':'ウェストハム',
+    'West Ham United':'ウェストハム',
+    'Crystal Palace':'クリスタル・パレス',
+    'Borussia Dortmund':'ドルトムント',
+    'RB Leipzig':'ライプツィヒ',
+    'Bayer Leverkusen':'レヴァークーゼン',
+    'Eintracht Frankfurt':'フランクフルト',
+    'VfB Stuttgart':'シュトゥットガルト',
+    'Wolfsburg':'ヴォルフスブルク',
+    'SC Freiburg':'フライブルク',
+    'TSG Hoffenheim':'ホッフェンハイム',
+    'Mainz 05':'マインツ',
+    'FC Augsburg':'アウクスブルク'
   };
   return map[n]||n||'—';
 }
@@ -815,7 +927,7 @@ function buildSmall(data,images){
   }
 
   spacer(h,5);
-  txtSmall(h,'レアル',10.4,'heavy','#FFFFFF',1);
+  txtSmall(h,CP.smallName,10.4,'heavy','#FFFFFF',1);
   h.addSpacer();
   staleBadge(h,data,5.8);
   if(data?.stale) spacer(h,3);
@@ -965,7 +1077,7 @@ function buildMedium(data,images){
 
   const title=top.addStack();
   title.layoutVertically();
-  txtMedium(title,'レアル・マドリード',10.9,'heavy',UI.text,1);
+  txtMedium(title,CP.clubName,10.9,'heavy',UI.text,1);
   txtMedium(
     title,
     compact(data.fixture.opponent,12)+' · '+fmtDate(data.fixture.date),
@@ -1567,6 +1679,24 @@ function applyQaScenario(data,scenario){
   return d;
 }
 
+async function chooseTeamKey(){
+  const fromParameter=normalizeTeamKey(args.widgetParameter);
+  if(fromParameter) return fromParameter;
+
+  if(!config.runsInApp) return 'real';
+
+  const a=new Alert();
+  a.title='Club Pulse Hero';
+  a.message='確認するクラブを選択';
+  a.addAction('レアル・マドリード');
+  a.addAction('FCバルセロナ');
+  a.addAction('マンチェスター・ユナイテッド');
+  a.addAction('バイエルン・ミュンヘン');
+
+  const i=await a.presentSheet();
+  return ['real','barca','manu','bayern'][Math.max(0,i)] || 'real';
+}
+
 async function chooseQaScenario(){
   if(!config.runsInApp) return 'normal';
 
@@ -1617,6 +1747,9 @@ let previewFamily=null;
 let qaScenario='normal';
 let widget;
 try{
+  const selectedTeam=await chooseTeamKey();
+  setActiveTeam(selectedTeam);
+
   const force=config.runsInApp;
   let data=normalizeDisplayData(await fetchData(force));
 
