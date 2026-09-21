@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.42
+// Club Pulse Hero Prototype v0.43
 // Multi-club post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -31,6 +31,20 @@ const TEAM_CONFIGS = {
     smallName: 'バイエルン',
     clubShort: 'FCB',
     storageKey: 'bayern',
+  },
+  city: {
+    teamId: 8456,
+    clubName: 'マンチェスター・シティ',
+    smallName: 'マンC',
+    clubShort: 'MCI',
+    storageKey: 'mancity',
+  },
+  psg: {
+    teamId: 9847,
+    clubName: 'パリ・サンジェルマン',
+    smallName: 'PSG',
+    clubShort: 'PSG',
+    storageKey: 'psg',
   },
 };
 
@@ -74,6 +88,8 @@ function normalizeTeamKey(value){
     barca:['barca','barcelona','fcb'],
     manu:['manu','manutd','manchesterunited','united','mun'],
     bayern:['bayern','munich','bayernmunich','fcbayern'],
+    city:['city','mancity','manchestercity','mcfc','mci'],
+    psg:['psg','paris','parissaintgermain','parissg'],
   };
 
   for(const [key,list] of Object.entries(aliases)){
@@ -419,8 +435,10 @@ function compName(m){
   if(l.includes('laliga') || l.includes('la liga') || n==='ラ・リーガ') return 'ラ・リーガ';
   if(l.includes('premier league')) return 'プレミアリーグ';
   if(l.includes('bundesliga')) return 'ブンデスリーガ';
+  if(l.includes('ligue 1') || l.includes('ligue1')) return 'リーグ・アン';
   if(l.includes('champions')) return 'CL';
   if(l.includes('copa del rey')) return '国王杯';
+  if(l.includes('coupe de france')) return 'クープ・ドゥ・フランス';
   if(l.includes('fa cup')) return 'FAカップ';
   if(
     l.includes('efl cup') ||
@@ -470,6 +488,25 @@ function jpTeamName(name){
     'Manchester United':'マンチェスター・ユナイテッド',
     'Manchester United FC':'マンチェスター・ユナイテッド',
     'Manchester City':'マンチェスター・シティ',
+    'Manchester City FC':'マンチェスター・シティ',
+    'Paris Saint-Germain':'パリ・サンジェルマン',
+    'Paris Saint Germain':'パリ・サンジェルマン',
+    'PSG':'パリ・サンジェルマン',
+    'Marseille':'マルセイユ',
+    'Olympique Marseille':'マルセイユ',
+    'Olympique de Marseille':'マルセイユ',
+    'Monaco':'モナコ',
+    'AS Monaco':'モナコ',
+    'Lyon':'リヨン',
+    'Olympique Lyonnais':'リヨン',
+    'Lille':'リール',
+    'Lens':'ランス',
+    'Rennes':'レンヌ',
+    'Nice':'ニース',
+    'Nantes':'ナント',
+    'Strasbourg':'ストラスブール',
+    'Paris FC':'パリFC',
+    'Brest':'ブレスト',
     'Arsenal':'アーセナル',
     'Liverpool':'リヴァプール',
     'Chelsea':'チェルシー',
@@ -1711,9 +1748,11 @@ async function chooseTeamKey(){
   a.addAction('FCバルセロナ');
   a.addAction('マンチェスター・ユナイテッド');
   a.addAction('バイエルン・ミュンヘン');
+  a.addAction('マンチェスター・シティ');
+  a.addAction('パリ・サンジェルマン');
 
   const i=await a.presentSheet();
-  return ['real','barca','manu','bayern'][Math.max(0,i)] || 'real';
+  return ['real','barca','manu','bayern','city','psg'][Math.max(0,i)] || 'real';
 }
 
 async function chooseQaScenario(){
