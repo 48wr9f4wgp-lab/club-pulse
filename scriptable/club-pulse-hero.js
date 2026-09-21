@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.45
+// Club Pulse Hero Prototype v0.46
 // Multi-club post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -150,32 +150,6 @@ setActiveTeam('real');
 
 function C(hex, alpha=1){ return new Color(hex, alpha); }
 function spacer(p,n){ p.addSpacer(n); }
-
-function clubStripe(parent,family='medium'){
-  const widths={
-    small: 142,
-    medium: 320,
-    large: 326,
-  };
-  const width=widths[family] || widths.medium;
-  const primary=Math.round(width*.72);
-  const secondary=width-primary;
-
-  const stripe=parent.addStack();
-  stripe.layoutHorizontally();
-  stripe.size=new Size(width,2);
-  stripe.cornerRadius=1;
-
-  const a=stripe.addStack();
-  a.size=new Size(primary,2);
-  a.backgroundColor=C(UI.accent,.96);
-
-  const b=stripe.addStack();
-  b.size=new Size(secondary,2);
-  b.backgroundColor=C(UI.accent2,.92);
-
-  return stripe;
-}
 
 function readJSON(path, fallback=null){
   try { return fm.fileExists(path) ? JSON.parse(fm.readString(path)) : fallback; }
@@ -1021,15 +995,12 @@ function resultChipSmall(parent,result){
 
 function buildSmall(data,images){
   const w=new ListWidget();
-  w.setPadding(5,8,8,8);
+  w.setPadding(8,8,8,8);
   w.backgroundColor=C(UI.bg);
 
   const root=w.addStack();
   root.layoutVertically();
   root.setPadding(0,0,0,0);
-
-  clubStripe(root,'small');
-  spacer(root,2);
 
   // Header
   const h=root.addStack();
@@ -1048,7 +1019,7 @@ function buildSmall(data,images){
   if(data?.stale) spacer(h,3);
   resultChipSmall(h,data.fixture.result);
 
-  spacer(root,4);
+  spacer(root,6);
 
   // Main body: explicit readable card
   const body=root.addStack();
@@ -1177,15 +1148,12 @@ function txtMedium(parent,value,size,weight='semibold',color='#FFFFFF',alpha=1){
 
 function buildMedium(data,images){
   const w=new ListWidget();
-  w.setPadding(2,7,5,7);
+  w.setPadding(5,7,5,7);
   w.backgroundColor=C(UI.bg);
 
   const root=w.addStack();
   root.layoutVertically();
   root.setPadding(0,0,0,0);
-
-  clubStripe(root,'medium');
-  spacer(root,2);
 
   // TOP: club / opponent / result / score
   const top=root.addStack();
@@ -1228,7 +1196,7 @@ function buildMedium(data,images){
     1
   );
 
-  spacer(root,3);
+  spacer(root,4);
 
   // BODY: one full-width card. No dead space outside left/right content.
   const body=root.addStack();
@@ -1466,7 +1434,7 @@ function contributionBlock(parent,title,lines){
 
 function buildLarge(data,images){
   const w=new ListWidget();
-  w.setPadding(7,12,10,12);
+  w.setPadding(10,12,10,12);
   w.backgroundImage=makeLargeBackground();
 
   const root=w.addStack();
@@ -1474,9 +1442,6 @@ function buildLarge(data,images){
   root.setPadding(0,0,0,0);
   root.size=new Size(0,335);
   root.topAlignContent();
-
-  clubStripe(root,'large');
-  spacer(root,2);
 
   // HEADER
   const h=root.addStack();
@@ -1497,7 +1462,7 @@ function buildLarge(data,images){
   if(data?.stale) spacer(h,5);
   resultChip(h,data.fixture.result);
 
-  spacer(root,5);
+  spacer(root,7);
 
   // SCORE
   const score=root.addStack();
