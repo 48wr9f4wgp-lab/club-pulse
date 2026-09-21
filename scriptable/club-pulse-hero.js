@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.43
+// Club Pulse Hero Prototype v0.44
 // Multi-club post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -10,6 +10,10 @@ const TEAM_CONFIGS = {
     smallName: 'レアル',
     clubShort: 'RMA',
     storageKey: 'realmadrid',
+    accent: '#F3C75B',
+    accent2: '#C9D2FF',
+    border: '#75683E',
+    borderSoft: '#4A4535',
   },
   barca: {
     teamId: 8634,
@@ -17,6 +21,10 @@ const TEAM_CONFIGS = {
     smallName: 'バルサ',
     clubShort: 'BAR',
     storageKey: 'barcelona',
+    accent: '#5B8CFF',
+    accent2: '#E34E70',
+    border: '#3D5E9D',
+    borderSoft: '#71334F',
   },
   manu: {
     teamId: 10260,
@@ -24,6 +32,10 @@ const TEAM_CONFIGS = {
     smallName: 'マンU',
     clubShort: 'MUN',
     storageKey: 'manu',
+    accent: '#FF5A5F',
+    accent2: '#F3C75B',
+    border: '#8C3D42',
+    borderSoft: '#624A32',
   },
   bayern: {
     teamId: 9823,
@@ -31,6 +43,10 @@ const TEAM_CONFIGS = {
     smallName: 'バイエルン',
     clubShort: 'FCB',
     storageKey: 'bayern',
+    accent: '#F0445E',
+    accent2: '#5A7FFF',
+    border: '#8A3448',
+    borderSoft: '#394D8D',
   },
   city: {
     teamId: 8456,
@@ -38,6 +54,10 @@ const TEAM_CONFIGS = {
     smallName: 'マンC',
     clubShort: 'MCI',
     storageKey: 'mancity',
+    accent: '#79CCF5',
+    accent2: '#E8F6FF',
+    border: '#4A8FB5',
+    borderSoft: '#3B5A70',
   },
   psg: {
     teamId: 9847,
@@ -45,6 +65,10 @@ const TEAM_CONFIGS = {
     smallName: 'PSG',
     clubShort: 'PSG',
     storageKey: 'psg',
+    accent: '#5D7FFF',
+    accent2: '#FF536A',
+    border: '#3F568F',
+    borderSoft: '#803746',
   },
 };
 
@@ -69,6 +93,7 @@ const UI = {
   border: '#2A3D66',
   borderSoft: '#20345A',
   accent: '#F3C75B',
+  accent2: '#C9D2FF',
   text: '#FFFFFF',
   sub: '#DCE6F8',
 };
@@ -103,6 +128,11 @@ function setActiveTeam(key){
   const safe=TEAM_CONFIGS[key]?key:'real';
   activeTeamKey=safe;
   CP={...CP_BASE,...TEAM_CONFIGS[safe]};
+
+  UI.accent=CP.accent || '#F3C75B';
+  UI.accent2=CP.accent2 || '#C9D2FF';
+  UI.border=CP.border || '#2A3D66';
+  UI.borderSoft=CP.borderSoft || '#20345A';
 
   // Preserve the already-verified Real Madrid cache/log filenames.
   dataPath=fm.joinPath(
@@ -983,7 +1013,7 @@ function buildSmall(data,images){
   }
 
   spacer(h,5);
-  txtSmall(h,CP.smallName,10.4,'heavy','#FFFFFF',1);
+  txtSmall(h,CP.smallName,10.4,'heavy',UI.accent,1);
   h.addSpacer();
   staleBadge(h,data,5.8);
   if(data?.stale) spacer(h,3);
@@ -1065,9 +1095,16 @@ function buildSmall(data,images){
   right.centerAlignContent();
 
   if(images.hero){
-    const hero=right.addImage(makeSmallHeroPanel(images.hero));
-    hero.imageSize=new Size(72,84);
-    hero.cornerRadius=11;
+    const heroFrame=right.addStack();
+    heroFrame.setPadding(2,2,2,2);
+    heroFrame.cornerRadius=12;
+    heroFrame.backgroundColor=C(UI.hero,.98);
+    heroFrame.borderWidth=1;
+    heroFrame.borderColor=C(UI.accent2,.78);
+
+    const hero=heroFrame.addImage(makeSmallHeroPanel(images.hero));
+    hero.imageSize=new Size(68,80);
+    hero.cornerRadius=9;
   }else{
     const ph=right.addStack();
     ph.size=new Size(72,84);
@@ -1254,7 +1291,7 @@ function buildMedium(data,images){
     heroFrame.cornerRadius=11;
     heroFrame.backgroundColor=C(UI.hero,.98);
     heroFrame.borderWidth=1;
-    heroFrame.borderColor=C(UI.border,.88);
+    heroFrame.borderColor=C(UI.accent2,.78);
 
     const hi=heroFrame.addImage(makeMediumHeroPanel(images.hero));
     hi.imageSize=new Size(82,64);
@@ -1573,7 +1610,7 @@ function buildLarge(data,images){
     heroFrame.cornerRadius=14;
     heroFrame.backgroundColor=C(UI.hero,.99);
     heroFrame.borderWidth=1;
-    heroFrame.borderColor=C(UI.border,.88);
+    heroFrame.borderColor=C(UI.accent2,.78);
 
     const hi=heroFrame.addImage(makeHeroPanel(images.hero));
     hi.imageSize=new Size(132,132);
