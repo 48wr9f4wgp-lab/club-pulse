@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.39
+// Club Pulse Hero Prototype v0.40
 // Real Madrid post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -32,6 +32,7 @@ const fm = FileManager.local();
 const dir = fm.joinPath(fm.documentsDirectory(), 'ClubPulseHeroFotMob');
 if (!fm.fileExists(dir)) fm.createDirectory(dir, true);
 const dataPath = fm.joinPath(dir, 'realmadrid_v2.json');
+const auditPath = fm.joinPath(dir, 'audit_v01.json');
 
 function C(hex, alpha=1){ return new Color(hex, alpha); }
 function spacer(p,n){ p.addSpacer(n); }
@@ -42,6 +43,177 @@ function readJSON(path, fallback=null){
 }
 function writeJSON(path, value){
   try { fm.writeString(path, JSON.stringify(value)); } catch {}
+}
+
+function auditSnapshot(data, origin='runtime'){
+  return {
+    observedAt: Date.now(),
+    origin,
+    fetchedAt: Number(data?.fetchedAt||0),
+    stale: Boolean(data?.stale),
+    lastError: data?.lastError ? String(data.lastError) : null,
+    fixtureId: data?.fixture?.id ?? null,
+    fixtureDate: data?.fixture?.date ?? null,
+    opponent: data?.fixture?.opponent ?? null,
+    ours: data?.fixture?.ours ?? null,
+    theirs: data?.fixture?.theirs ?? null,
+    result: data?.fixture?.result ?? null,
+    heroId: data?.hero?.id ?? null,
+    heroName: data?.hero?.name ?? null,
+    heroRating: data?.hero?.rating ?? null,
+    nextId: data?.next?.id ?? null,
+    nextDate: data?.next?.date ?? null,
+    nextOpponent: data?.next?.opponent ?? null,
+  };
+}
+
+function auditEvents(prev,cur){
+  const events=[];
+  if(!prev) return ['INITIAL'];
+
+  if(prev.fixtureId!==cur.fixtureId){
+    events.push('FIXTURE_CHANGED');
+  }else if(
+    prev.ours!==cur.ours ||
+    prev.theirs!==cur.theirs ||
+    prev.result!==cur.result
+  ){
+    events.push('RESULT_CHANGED');
+  }
+
+  if(prev.heroId!==cur.heroId || prev.heroRating!==cur.heroRating){
+    events.push('HERO_CHANGED');
+  }
+
+  if(prev.nextId!==cur.nextId){
+    events.push('NEXT_CHANGED');
+  }
+
+  if(Boolean(prev.stale)!==Boolean(cur.stale)){
+    events.push(cur.stale?'STALE_ON':'STALE_OFF');
+  }
+
+  return events;
+}
+
+function recordAudit(data,origin='runtime'){
+  try{
+    const store=readJSON(auditPath,{records:[]}) || {records:[]};
+    const records=Array.isArray(store.records)?store.records:[];
+    const prev=records.length?records[records.length-1]:null;
+    const cur=auditSnapshot(data,origin);
+    const events=auditEvents(prev,cur);
+
+    const heartbeatDue=
+      !prev ||
+      (cur.observedAt-Number(prev.observedAt||0) >= 6*60*60*1000);
+
+    if(events.length || heartbeatDue){
+      cur.events=events.length?events:['HEARTBEAT'];
+      records.push(cur);
+      while(records.length>80) records.shift();
+      writeJSON(auditPath,{version:1,records});
+    }
+  }catch{}
+}
+
+function readAudit(){
+  const store=readJSON(auditPath,{records:[]}) || {records:[]};
+  return Array.isArray(store.records)?store.records:[];
+}
+
+function fmtAuditTime(ms){
+  if(!ms) return '—';
+  try{
+    const f=new DateFormatter();
+    f.locale='ja_JP';
+    f.dateFormat='M/d HH:mm';
+    return f.string(new Date(ms));
+  }catch{return '—';}
+}
+
+function buildDiagnostics(data){
+  const w=new ListWidget();
+  w.backgroundColor=C(UI.bg);
+  w.setPadding(12,12,12,12);
+
+  const root=w.addStack();
+  root.layoutVertically();
+
+  txtLarge(root,'CLUB PULSE 診断',14,'heavy',UI.text,1);
+  spacer(root,6);
+
+  const head=root.addStack();
+  head.layoutHorizontally();
+  txtLarge(head,'実データ',9.5,'heavy',UI.accent,1);
+  head.addSpacer();
+  staleBadge(head,data,7);
+
+  spacer(root,6);
+
+  const box=root.addStack();
+  box.layoutVertically();
+  box.setPadding(8,9,8,9);
+  box.cornerRadius=11;
+  box.backgroundColor=C(UI.panel,.98);
+  box.borderWidth=1;
+  box.borderColor=C(UI.border,.82);
+
+  txtLarge(
+    box,
+    '取得 '+fmtAuditTime(data?.fetchedAt),
+    9.4,'semibold',UI.sub,1
+  );
+  spacer(box,2);
+  txtLarge(
+    box,
+    '前回 '+String(data?.fixture?.id??'—')+'  '+compact(data?.fixture?.opponent,16),
+    9.8,'bold',UI.text,1
+  );
+  txtLarge(
+    box,
+    '結果 '+String(data?.fixture?.ours??'—')+'-'+String(data?.fixture?.theirs??'—')+' / '+String(data?.fixture?.result??'—'),
+    9.8,'semibold',UI.text,1
+  );
+  txtLarge(
+    box,
+    '最高評価 '+compact(displayPlayerName(data?.hero?.name),12)+' '+(data?.hero?.rating?.toFixed?.(1)??'—'),
+    9.8,'semibold',UI.text,1
+  );
+  txtLarge(
+    box,
+    '次戦 '+String(data?.next?.id??'—')+'  '+compact(data?.next?.opponent||'なし',16),
+    9.8,'semibold',UI.text,1
+  );
+
+  spacer(root,7);
+  txtLarge(root,'履歴',9.5,'heavy',UI.accent,1);
+  spacer(root,3);
+
+  const records=readAudit().slice(-6).reverse();
+  if(!records.length){
+    txtLarge(root,'まだ診断履歴なし',9.2,'medium',UI.sub,.85);
+  }else{
+    for(const r of records){
+      const row=root.addStack();
+      row.layoutVertically();
+      const ev=(r.events||[]).join(',');
+      txtLarge(
+        row,
+        fmtAuditTime(r.observedAt)+'  '+(ev||'—'),
+        8.2,'bold',UI.text,1
+      );
+      txtLarge(
+        row,
+        compact(r.opponent,12)+' '+String(r.ours??'—')+'-'+String(r.theirs??'—')+
+          ' / '+compact(displayPlayerName(r.heroName),9),
+        7.8,'medium',UI.sub,.95
+      );
+      spacer(root,3);
+    }
+  }
+
+  return w;
 }
 
 async function getJSON(path){
@@ -1435,9 +1607,10 @@ async function choosePreviewFamily(){
   a.addAction('Small');
   a.addAction('Medium');
   a.addAction('Large');
+  a.addAction('診断');
 
   const i=await a.presentSheet();
-  return ['small','medium','large'][Math.max(0,i)] || 'medium';
+  return ['small','medium','large','diagnostic'][Math.max(0,i)] || 'medium';
 }
 
 let previewFamily=null;
@@ -1447,11 +1620,16 @@ try{
   const force=config.runsInApp;
   let data=normalizeDisplayData(await fetchData(force));
 
-  previewFamily=await choosePreviewFamily();
-  qaScenario=await chooseQaScenario();
+  recordAudit(data,config.runsInWidget?'widget':'app');
 
-  if(config.runsInApp){
-    data=applyQaScenario(data,qaScenario);
+  previewFamily=await choosePreviewFamily();
+
+  if(previewFamily!=='diagnostic'){
+    qaScenario=await chooseQaScenario();
+
+    if(config.runsInApp){
+      data=applyQaScenario(data,qaScenario);
+    }
   }
 
   const [hero,crest]=await Promise.all([
@@ -1463,11 +1641,13 @@ try{
     ? (config.widgetFamily||'medium')
     : (previewFamily||'medium');
 
-  widget=family==='small'
-    ? buildSmall(data,{hero,crest})
-    : (family==='large'||family==='extraLarge')
-      ? buildLarge(data,{hero,crest})
-      : buildMedium(data,{hero,crest});
+  widget=family==='diagnostic'
+    ? buildDiagnostics(data)
+    : family==='small'
+      ? buildSmall(data,{hero,crest})
+      : (family==='large'||family==='extraLarge')
+        ? buildLarge(data,{hero,crest})
+        : buildMedium(data,{hero,crest});
 }catch(e){
   widget=errorWidget('データ取得失敗\n'+String(e));
 }
@@ -1475,7 +1655,7 @@ try{
 Script.setWidget(widget);
 if(config.runsInApp){
   if(previewFamily==='small') await widget.presentSmall();
-  else if(previewFamily==='large') await widget.presentLarge();
+  else if(previewFamily==='large' || previewFamily==='diagnostic') await widget.presentLarge();
   else await widget.presentMedium();
 }
 Script.complete();
