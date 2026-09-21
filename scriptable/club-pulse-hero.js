@@ -1213,7 +1213,7 @@ function goalLines(data,maxNamed=3){
   const otherGoals=hiddenGoals+s.missingGoals;
 
   const lines=shown.map(
-    x=>x.label+(x.count>1?' ×'+x.count:'')
+    x=>x.label+(x.count>1?'×'+x.count:'')
   );
 
   if(otherGoals>0){
