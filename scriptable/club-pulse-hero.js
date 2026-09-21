@@ -1,4 +1,4 @@
-// Club Pulse Hero Prototype v0.51
+// Club Pulse Hero Prototype v0.52
 // Multi-club post-match hero widget for Scriptable.
 // Prototype data source: FotMob web JSON endpoints (no API key).
 // Commercial release must use a licensed/approved production data source.
@@ -255,7 +255,8 @@ function buildDiagnostics(data){
   root.layoutVertically();
 
   txtLarge(root,'CLUB PULSE 診断 · '+CP.smallName,14,'heavy',UI.text,1);
-  spacer(root,6);
+  txtLarge(root,'runtime v0.52',7.6,'semibold',UI.sub,.72);
+  spacer(root,5);
 
   const head=root.addStack();
   head.layoutHorizontally();
@@ -1169,10 +1170,17 @@ function goalLines(data){
   const grouped=new Map();
 
   for(const g of data.goals||[]){
-    const raw=stripGoalCountSuffix(g?.scorer);
+    let raw=String(g?.scorer||'').trim();
+
+    // Legacy cache compatibility: ignore standalone repetition markers entirely.
+    if(/^[×xX]\s*\d+$/.test(raw)) continue;
+
+    raw=stripGoalCountSuffix(raw);
     if(!raw || /^[×xX]\s*\d+$/.test(raw)) continue;
 
     const label=displayPlayerName(raw);
+    if(!label || label==='—' || /^[×xX]\s*\d+$/.test(label)) continue;
+
     const id=g?.scorerId;
     const key=id!=null
       ? 'id:'+String(id)
@@ -1181,10 +1189,6 @@ function goalLines(data){
     const old=grouped.get(key);
     if(old){
       old.count+=1;
-      // Prefer a real translated/name label over a placeholder.
-      if((old.label==='—' || /^[×xX]\s*\d+$/.test(old.label)) && label!=='—'){
-        old.label=label;
-      }
     }else{
       grouped.set(key,{label,count:1});
     }
